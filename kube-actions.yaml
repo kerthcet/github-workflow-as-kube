@@ -1,0 +1,120 @@
+name: PR Actions
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [labeled]
+
+env:
+  GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
+
+jobs:
+  handle-comments:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install yq
+      run: pip install yq
+
+    - name: Handle PR Comments
+      run: |
+        COMMENT_BODY=$(jq -r '.comment.body' $GITHUB_EVENT_PATH)
+        PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
+        COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
+
+        while IFS= read -r COMMENT_LINE; do
+          COMMENT_LINE=$(echo "$COMMENT_LINE" | sed 's/^[ \t]*//;s/[ \t]*$//' | tr -d '\n' | awk '{$1=$1};1')
+          LABEL=$(echo "$COMMENT_LINE" | awk '{print $2}')
+          LABEL=$(echo "$LABEL" | sed 's/^[ \t]*//;s/[ \t]*$//' | tr -d '\n' | awk '{$1=$1};1')
+
+          # Handle lgtm command
+          if [[ "$COMMENT_LINE" =~ ^/lgtm ]]; then
+            if [[ "$LABEL" =~ ^cancel ]]; then
+              gh pr edit $PR_NUMBER --remove-label lgtm
+              echo "Remove label: lgtm"
+            else
+              gh pr edit $PR_NUMBER --add-label lgtm
+              echo "Add label: lgtm"
+            fi
+          fi
+
+          # Handle approved command
+          if [[ "$COMMENT_LINE" =~ ^/approve ]]; then
+            if yq ".approvers[] | select(. == \"$COMMENT_USER\") " OWNERS | grep -q "$COMMENT_USER"; then
+              if [[ "$LABEL" =~ ^cancel ]]; then
+                gh pr edit $PR_NUMBER --remove-label approved
+                echo "Remove label: approved"
+              else
+                gh pr edit $PR_NUMBER --add-label approved
+                echo "Add label: approved"
+              fi
+            else
+              gh pr comment $PR_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
+              echo "User $COMMENT_USER is not authorized to approve/unapprove this PR"
+            fi
+          fi
+
+          # Handle hold command
+          if [[ "$COMMENT_LINE" =~ ^/hold ]]; then
+            if [[ "$LABEL" =~ ^cancel ]]; then
+              gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
+              echo "Remove label: do-not-merge/hold"
+            else
+              gh pr edit $PR_NUMBER --add-label do-not-merge/hold
+              echo "Add label: do-not-merge/hold"
+            fi
+
+          # Handle kind command
+          elif [[ "$COMMENT_LINE" =~ ^/kind ]]; then
+            if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
+              echo "The label '$LABEL' cannot be added using /kind."
+            else
+              gh pr edit $PR_NUMBER --add-label $LABEL
+              echo "Add label: '$LABEL'"
+            fi
+          elif [[ "$COMMENT_LINE" =~ ^/remove-kind ]]; then
+            if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
+              echo "The label '$LABEL' cannot be removed using /remove-kind."
+            else
+              gh pr edit $PR_NUMBER --remove-label $LABEL
+              echo "Remove label: '$LABEL'"
+            fi
+
+          # Handle assignment
+          elif [[ "$COMMENT_LINE" =~ ^/assign ]]; then
+            USERNAME=$(echo "$LABEL" | sed 's/@//')
+            if [[ -n "$USERNAME" ]]; then
+              gh pr edit $PR_NUMBER --add-assignee "$USERNAME"
+              echo "Assign to $USERNAME"
+            else
+              echo "No username provided for assignment."
+            fi
+          elif [[ "$COMMENT_LINE" =~ ^/unassign ]]; then
+            USERNAME=$(echo "$LABEL" | sed 's/@//')
+            if [[ -n "$USERNAME" ]]; then
+              gh pr edit $PR_NUMBER --remove-assignee "$USERNAME"
+              echo "Unassign to $USERNAME"
+            else
+              echo "No username provided for unassignment."
+            fi
+
+          else
+              echo "$COMMENT_LINE is not supported"
+          fi
+        done <<< "$COMMENT_BODY"
+
+        # Merge PR if LGTMed and approved and do not hold.
+        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge/hold"* ]]; then
+          gh pr merge $PR_NUMBER --merge
+        else
+          echo "Not ready to merge"
+        fi

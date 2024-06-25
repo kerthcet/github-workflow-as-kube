@@ -24,7 +24,7 @@ To use the workflow, you have to:
 
 - Provide a [OWNERS](./OWNERS) file, only the approvers have the privilege to tag `/approve` or `/approve cancel`
 - Provide a github [secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) with the name of `AGENT_TOKEN`, it should have right permissions based on your needs.
-- Add the [example](./examples/sample.yaml) to your project under the path of `.github/workflows/`.
+- Add the [example](./examples/kube-workflow.yaml) to your project under the path of `.github/workflows/`.
 - Add additional labels to your project, like `approved`, `lgtm`, `do-not-merge/hold` and customized kind of labels.
 
 Then it should work now.

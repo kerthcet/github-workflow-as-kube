@@ -1,23 +1,5 @@
 name: Workflow As Kubernetes
 
-# When not work for workflow call, uncomment them.
-# on:
-#   issue_comment:
-#     types:
-#       - created
-#   pull_request_target:
-#     types:
-#       - labeled
-#       - unlabeled
-#       - synchronize
-#   # TODO: https://github.com/kerthcet/github-workflow-as-kube/issues/1
-#   # pull_request_review_comment:
-#   #   types:
-#   #     - created
-#
-# env:
-#   GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
-
 on:
   workflow_call:
     secrets:
@@ -53,7 +35,7 @@ jobs:
   on-new-comment:
     env:
       GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
-    if: github.event_name == 'issue_comment' && github.event.action == 'created'
+    if: (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') && github.event.action == 'created'
     runs-on: ubuntu-latest
 
     steps:

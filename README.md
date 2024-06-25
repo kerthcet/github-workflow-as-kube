@@ -1,5 +1,7 @@
 # github-workflow-as-kube
 
+ [![Latest Release](https://img.shields.io/github/v/release/kerthcet/github-workflow-as-kube?include_prereleases)](https://github.com/kerthcet/github-workflow-as-kube/releases/latest)
+
 ## Commands
 
 This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?repo=kubernetes%2Fkubernetes), offering commands:
@@ -33,3 +35,4 @@ Then it should work now.
 - Test workflow support
 - PR review by AI agent.
 - Triage support
+- Support priority label, `long-term` etc.

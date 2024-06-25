@@ -21,7 +21,7 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 To use the workflow, you have to:
 
 - Provide a `OWNERS` file, only the approvers have the privilege to tag `/approve` or `/approve cancel`
-- Provide a github [secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) with the name of `AGENT_TOKEN`, it should have write privilege to your project.
+- Provide a github [secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) with the name of `AGENT_TOKEN`, it should have write permission to your project.
 - Add the `kube-actions.yaml` to your project under the path of `.github/workflows/`.
 - Add additional labels to your project, like `approved`, `lgtm`, `do-not-merge/hold` and customized kind of labels.
 
@@ -29,3 +29,4 @@ To use the workflow, you have to:
 
 - Dispatch reviewers
 - Test workflow support
+- Triage support

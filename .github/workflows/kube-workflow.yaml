@@ -25,9 +25,9 @@ on:
         required: true
 
 jobs:
-  env:
-    GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
   on-new-push:
+    env:
+      GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
     if: github.event_name == 'pull_request_target' && github.event.action == 'synchronize'
     runs-on: ubuntu-latest
 
@@ -51,6 +51,8 @@ jobs:
 
   # Work for issue & PR, ignore update for now.
   on-new-comment:
+    env:
+      GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
     if: github.event_name == 'issue_comment' && github.event.action == 'created'
     runs-on: ubuntu-latest
 
@@ -208,6 +210,8 @@ jobs:
         fi
 
   on-pr-merge:
+    env:
+      GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
     if: github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false
     runs-on: ubuntu-latest
 

@@ -20,8 +20,13 @@ name: Workflow As Kubernetes
 
 on:
   workflow_call:
+    secrets:
+      AGENT_TOKEN:
+        required: true
 
 jobs:
+  env:
+    GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
   on-new-push:
     if: github.event_name == 'pull_request_target' && github.event.action == 'synchronize'
     runs-on: ubuntu-latest

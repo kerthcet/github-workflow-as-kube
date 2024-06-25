@@ -9,12 +9,10 @@ on:
       - labeled
       - unlabeled
       - synchronize
-  pull_request_review_comment:
-    types:
-      - created
 
 jobs:
   call-workflow:
+    # Be careful to use the main branch, prefer to use a released version.
     uses: kerthcet/github-workflow-as-kube/.github/workflows/kube-workflow.yaml@main
     secrets:
       AGENT_TOKEN: ${{ secrets.AGENT_TOKEN }}

@@ -64,6 +64,8 @@ jobs:
           exit 0
         fi
 
+        echo "EVENT_TYPE: $EVENT_TYPE"
+
         # Initialize arrays to store the labels.
         LABELS_TO_ADD=()
         LABELS_TO_REMOVE=()
@@ -144,7 +146,6 @@ jobs:
               echo "$COMMENT_LINE is not supported for PR type"
             fi
           fi
-
 
           # Handle kind command
           if [[ "$COMMENT_LINE" =~ ^/kind ]]; then

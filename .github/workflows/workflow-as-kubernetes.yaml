@@ -223,7 +223,7 @@ jobs:
 
         if [ "$EVENT_TYPE" == "pr" ]; then
           if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
-            gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_REMOVE_STR"
+            gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_ADD_STR"
           fi
 
           if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then

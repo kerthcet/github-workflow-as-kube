@@ -17,6 +17,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Debug GitHub CLI
+      run: |
+        gh auth status
+        gh repo view InftyAI/PR-Copilot
+
     - name: Register required labels
       run: |
         # All needs-xxx should use #EDEDED.

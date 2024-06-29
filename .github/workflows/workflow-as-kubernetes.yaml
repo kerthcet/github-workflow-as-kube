@@ -56,18 +56,11 @@ jobs:
         COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
         EVENT_TYPE=""
 
-        if [ -n "${{ github.event.issue }}" ]; then
-          EVENT_TYPE="issue"
-        elif [ -n "${{ github.event.pull_request }}" ]; then
+        if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
           EVENT_TYPE="pr"
         else
-          exit 0
+          EVENT_TYPE="issue"
         fi
-
-        echo "${{ github.event.issue }}"
-        echo "${{ github.event.pull_request }}"
-
-        echo "EVENT_TYPE: $EVENT_TYPE"
 
         # Initialize arrays to store the labels.
         LABELS_TO_ADD=()

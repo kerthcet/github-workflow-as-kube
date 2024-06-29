@@ -175,6 +175,13 @@ jobs:
           elif [[ "$COMMENT_LINE" =~ ^/remove-good-first-issue ]]; then
             LABELS_TO_REMOVE+=("good first issue")
 
+          # Handle priority or similar commands
+          # You should be responsible for what kind of priorities you have.
+          elif [[ "$COMMENT_LINE" =~ ^/priority ]]; then
+            LABELS_TO_ADD+=("$LABEL")
+          elif [[ "$COMMENT_LINE" =~ ^/remove-priority ]]; then
+            LABELS_TO_REMOVE+=("$LABEL")
+
           else
               echo "$COMMENT_LINE is not supported"
           fi

@@ -63,6 +63,8 @@ jobs:
           exit 0
         fi
 
+        echo "event type: $EVENT_TYPE"
+
         # Initialize arrays to store the labels.
         LABELS_TO_ADD=()
         LABELS_TO_REMOVE=()

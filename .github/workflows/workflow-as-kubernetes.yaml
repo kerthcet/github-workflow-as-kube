@@ -120,6 +120,7 @@ jobs:
               fi
 
             # Handle cc
+            # Can not require review from the author.
             elif [[ "$COMMENT_LINE" =~ ^/cc ]]; then
               USERNAME=$(echo "$LABEL" | sed 's/@//')
               if [[ -n "$USERNAME" ]]; then
@@ -229,6 +230,7 @@ jobs:
 
           if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
             echo "Remove reviewer"
+            echo "$REVIEWERS_TO_REMOVE_STR"
             gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
           fi
         fi

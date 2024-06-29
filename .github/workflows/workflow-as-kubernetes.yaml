@@ -60,6 +60,8 @@ jobs:
         LABELS_TO_REMOVE=()
         ASSIGNEES_TO_ADD=()
         ASSIGNEES_TO_REMOVE=()
+        REVIEWERS_TO_ADD=()
+        REVIEWERS_TO_REMOVE=()
 
         while IFS= read -r COMMENT_LINE; do
           COMMENT_LINE=$(echo "$COMMENT_LINE" | sed 's/^[ \t]*//;s/[ \t]*$//' | tr -d '\r\n' | awk '{$1=$1};1')
@@ -130,7 +132,8 @@ jobs:
               ASSIGNEES_TO_ADD=("$USERNAME")
               echo "To assign to $USERNAME"
             else
-              echo "No username provided for assignment."
+              ASSIGNEES_TO_ADD=("$COMMENT_USER")
+              echo "To assign to $COMMENT_USER"
             fi
           elif [[ "$COMMENT_LINE" =~ ^/unassign ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
@@ -138,7 +141,28 @@ jobs:
               ASSIGNEES_TO_REMOVE=("$USERNAME")
               echo "To unassign to $USERNAME"
             else
-              echo "No username provided for unassignment."
+              ASSIGNEES_TO_REMOVE=("$COMMENT_USER")
+              echo "To unassign to $COMMENT_USER"
+            fi
+
+          # Handle cc
+          elif [[ "$COMMENT_LINE" =~ ^/cc && ]]; then
+            USERNAME=$(echo "$LABEL" | sed 's/@//')
+            if [[ -n "$USERNAME" ]]; then
+              REVIEWERS_TO_ADD=("$USERNAME")
+              echo "To require review from $USERNAME"
+            else
+              REVIEWERS_TO_ADD=("$COMMENT_USER")
+              echo "To require review from $COMMENT_USER"
+            fi
+          elif [[ "$COMMENT_LINE" =~ ^/uncc ]]; then
+            USERNAME=$(echo "$LABEL" | sed 's/@//')
+            if [[ -n "$USERNAME" ]]; then
+              REVIEWERS_TO_REMOVE=("$USERNAME")
+              echo "To unrequire review from $USERNAME"
+            else
+              REVIEWERS_TO_REMOVE=("$COMMENT_USER")
+              echo "To unrequire review from $COMMENT_USER"
             fi
 
           # Handle help & good-first-issue
@@ -161,6 +185,8 @@ jobs:
         LABELS_TO_REMOVE_STR=$(IFS=,; echo "${LABELS_TO_REMOVE[*]}")
         ASSIGNEES_TO_ADD_STR=$(IFS=,; echo "${ASSIGNEES_TO_ADD[*]}")
         ASSIGNEES_TO_REMOVE_STR=$(IFS=,; echo "${ASSIGNEES_TO_REMOVE[*]}")
+        REVIEWERS_TO_ADD_STR=$(IFS=,; echo "${REVIEWERS_TO_ADD[*]}")
+        REVIEWERS_TO_REMOVE_STR=$(IFS=,; echo "${REVIEWERS_TO_REMOVE[*]}")
 
         if [[ -n "$LABELS_TO_ADD_STR" ]]; then
           if [ -n "${{ github.event.issue }}" ]; then
@@ -197,6 +223,22 @@ jobs:
             gh issue edit $PR_NUMBER --remove-label "$ASSIGNEES_TO_REMOVE_STR"
           elif [ -n "${{ github.event.pull_request }}" ]; then
             gh pr edit $PR_NUMBER --remove-label "$ASSIGNEES_TO_REMOVE_STR"
+          else
+            exit 0
+          fi
+        fi
+
+        if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
+          if [ -n "${{ github.event.pull_request }}" ]; then
+            gh pr review $PR_NUMBER --request "$ASSIGNEES_TO_REMOVE_STR"
+          else
+            exit 0
+          fi
+        fi
+
+        if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
+          if [ -n "${{ github.event.pull_request }}" ]; then
+            gh pr review $PR_NUMBER --dismiss "$ASSIGNEES_TO_REMOVE_STR"
           else
             exit 0
           fi

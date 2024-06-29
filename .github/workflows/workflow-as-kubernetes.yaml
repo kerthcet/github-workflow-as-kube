@@ -64,6 +64,9 @@ jobs:
           exit 0
         fi
 
+        echo "${{ github.event.issue }}"
+        echo "${{ github.event.pull_request }}"
+
         echo "EVENT_TYPE: $EVENT_TYPE"
 
         # Initialize arrays to store the labels.

@@ -55,6 +55,14 @@ jobs:
         PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
         COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
 
+        if [ "${{ github.event.issue }}" != "" ]; then
+          echo "EVENT_TYPE=issue" >> $GITHUB_ENV
+        elif [ "${{ github.event.pull_request }}" != "" ]; then
+          echo "EVENT_TYPE=pr" >> $GITHUB_ENV
+        else
+          exit 0
+        fi
+
         # Initialize arrays to store the labels.
         LABELS_TO_ADD=()
         LABELS_TO_REMOVE=()
@@ -83,7 +91,7 @@ jobs:
             fi
 
           # Handle approved command
-          elif [[ "$COMMENT_LINE" =~ ^/approve ]]; then
+          elif [[ "$COMMENT_LINE" =~ ^/approve && "$EVENT_TYPE" == "pr" ]]; then
             if yq ".approvers[] | select(. == \"$COMMENT_USER\") " OWNERS | grep -q "$COMMENT_USER"; then
               if [[ "$LABEL" =~ ^cancel ]]; then
                 LABELS_TO_REMOVE+=("approved")
@@ -100,7 +108,7 @@ jobs:
 
           # Handle hold command
           # hold/unhold the PR immediately in case of unexpected auto-merge.
-          elif [[ "$COMMENT_LINE" =~ ^/hold ]]; then
+          elif [[ "$COMMENT_LINE" =~ ^/hold && "$EVENT_TYPE" == "pr" ]]; then
             if [[ "$LABEL" =~ ^cancel ]]; then
               gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
               echo "Remove label: do-not-merge/hold"
@@ -146,7 +154,7 @@ jobs:
             fi
 
           # Handle cc
-          elif [[ "$COMMENT_LINE" =~ ^/cc ]]; then
+          elif [[ "$COMMENT_LINE" =~ ^/cc && "$EVENT_TYPE" == "pr" ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
               REVIEWERS_TO_ADD+=("$USERNAME")
@@ -155,7 +163,7 @@ jobs:
               REVIEWERS_TO_ADD+=("$COMMENT_USER")
               echo "To require review from $COMMENT_USER"
             fi
-          elif [[ "$COMMENT_LINE" =~ ^/uncc ]]; then
+          elif [[ "$COMMENT_LINE" =~ ^/uncc && "$EVENT_TYPE" == "pr" ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
               REVIEWERS_TO_REMOVE+=("$USERNAME")
@@ -196,59 +204,27 @@ jobs:
         REVIEWERS_TO_REMOVE_STR=$(IFS=,; echo "${REVIEWERS_TO_REMOVE[*]}")
 
         if [[ -n "$LABELS_TO_ADD_STR" ]]; then
-          if [ -n "${{ github.event.issue }}" ]; then
-            gh issue edit $PR_NUMBER --add-label "$LABELS_TO_ADD_STR"
-          elif [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr edit $PR_NUMBER --add-label "$LABELS_TO_ADD_STR"
-          else
-            exit 0
-          fi
+          gh "$EVENT_TYPE" edit $PR_NUMBER --add-label "$LABELS_TO_ADD_STR"
         fi
 
         if [[ -n "$LABELS_TO_REMOVE_STR" ]]; then
-          if [ -n "${{ github.event.issue }}" ]; then
-            gh issue edit $PR_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
-          elif [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr edit $PR_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
-          else
-            exit 0
-          fi
+          gh "$EVENT_TYPE" edit $PR_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
         fi
 
         if [[ -n "$ASSIGNEES_TO_ADD_STR" ]]; then
-          if [ -n "${{ github.event.issue }}" ]; then
-            gh issue edit $PR_NUMBER --add-label "$ASSIGNEES_TO_ADD_STR"
-          elif [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr edit $PR_NUMBER --add-label "$ASSIGNEES_TO_ADD_STR"
-          else
-            exit 0
-          fi
+          gh "$EVENT_TYPE" edit $PR_NUMBER --add-label "$ASSIGNEES_TO_ADD_STR"
         fi
 
         if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then
-          if [ -n "${{ github.event.issue }}" ]; then
-            gh issue edit $PR_NUMBER --remove-label "$ASSIGNEES_TO_REMOVE_STR"
-          elif [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr edit $PR_NUMBER --remove-label "$ASSIGNEES_TO_REMOVE_STR"
-          else
-            exit 0
-          fi
+          gh "$EVENT_TYPE" edit $PR_NUMBER --remove-label "$ASSIGNEES_TO_REMOVE_STR"
         fi
 
-        if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
-          if [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_REMOVE_STR"
-          else
-            exit 0
-          fi
+        if [[ -n "$REVIEWERS_TO_ADD_STR" ]] && [ "$EVENT_TYPE" == "pr" ]; then
+          gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_REMOVE_STR"
         fi
 
-        if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
-          if [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr edit $PR_NUMBER --remove-reviewer "$ASSIGNEES_TO_REMOVE_STR"
-          else
-            exit 0
-          fi
+        if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]] && [ "$EVENT_TYPE" == "pr" ]; then
+          gh pr edit $PR_NUMBER --remove-reviewer "$ASSIGNEES_TO_REMOVE_STR"
         fi
 
   on-pr-merge:

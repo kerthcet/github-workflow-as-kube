@@ -78,7 +78,7 @@ jobs:
               echo "To remove label: lgtm"
             else
               LABELS_TO_ADD+=("lgtm")
-              ASSIGNEES_TO_ADD("$COMMENT_USER")
+              ASSIGNEES_TO_ADD+=("$COMMENT_USER")
               echo "To add label: lgtm"
             fi
 
@@ -90,7 +90,7 @@ jobs:
                 echo "To remove label: approved"
               else
                 LABELS_TO_ADD+=("approved")
-                ASSIGNEES_TO_ADD("$COMMENT_USER")
+                ASSIGNEES_TO_ADD+=("$COMMENT_USER")
                 echo "To add label: approved"
               fi
             else
@@ -129,19 +129,19 @@ jobs:
           elif [[ "$COMMENT_LINE" =~ ^/assign ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
-              ASSIGNEES_TO_ADD=("$USERNAME")
+              ASSIGNEES_TO_ADD+=("$USERNAME")
               echo "To assign to $USERNAME"
             else
-              ASSIGNEES_TO_ADD=("$COMMENT_USER")
+              ASSIGNEES_TO_ADD+=("$COMMENT_USER")
               echo "To assign to $COMMENT_USER"
             fi
           elif [[ "$COMMENT_LINE" =~ ^/unassign ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
-              ASSIGNEES_TO_REMOVE=("$USERNAME")
+              ASSIGNEES_TO_REMOVE+=("$USERNAME")
               echo "To unassign to $USERNAME"
             else
-              ASSIGNEES_TO_REMOVE=("$COMMENT_USER")
+              ASSIGNEES_TO_REMOVE+=("$COMMENT_USER")
               echo "To unassign to $COMMENT_USER"
             fi
 
@@ -149,19 +149,19 @@ jobs:
           elif [[ "$COMMENT_LINE" =~ ^/cc && ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
-              REVIEWERS_TO_ADD=("$USERNAME")
+              REVIEWERS_TO_ADD+=("$USERNAME")
               echo "To require review from $USERNAME"
             else
-              REVIEWERS_TO_ADD=("$COMMENT_USER")
+              REVIEWERS_TO_ADD+=("$COMMENT_USER")
               echo "To require review from $COMMENT_USER"
             fi
           elif [[ "$COMMENT_LINE" =~ ^/uncc ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
-              REVIEWERS_TO_REMOVE=("$USERNAME")
+              REVIEWERS_TO_REMOVE+=("$USERNAME")
               echo "To unrequire review from $USERNAME"
             else
-              REVIEWERS_TO_REMOVE=("$COMMENT_USER")
+              REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
               echo "To unrequire review from $COMMENT_USER"
             fi
 

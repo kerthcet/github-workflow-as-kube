@@ -146,7 +146,7 @@ jobs:
             fi
 
           # Handle cc
-          elif [[ "$COMMENT_LINE" =~ ^/cc && ]]; then
+          elif [[ "$COMMENT_LINE" =~ ^/cc ]]; then
             USERNAME=$(echo "$LABEL" | sed 's/@//')
             if [[ -n "$USERNAME" ]]; then
               REVIEWERS_TO_ADD+=("$USERNAME")
@@ -237,7 +237,7 @@ jobs:
 
         if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
           if [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr review $PR_NUMBER --request "$ASSIGNEES_TO_REMOVE_STR"
+            gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_REMOVE_STR"
           else
             exit 0
           fi
@@ -245,7 +245,7 @@ jobs:
 
         if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
           if [ -n "${{ github.event.pull_request }}" ]; then
-            gh pr review $PR_NUMBER --dismiss "$ASSIGNEES_TO_REMOVE_STR"
+            gh pr edit $PR_NUMBER --remove-reviewer "$ASSIGNEES_TO_REMOVE_STR"
           else
             exit 0
           fi

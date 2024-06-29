@@ -213,11 +213,11 @@ jobs:
         fi
 
         if [[ -n "$ASSIGNEES_TO_ADD_STR" ]]; then
-          gh "$EVENT_TYPE" edit $PR_NUMBER --add-label "$ASSIGNEES_TO_ADD_STR"
+          gh "$EVENT_TYPE" edit $PR_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
         fi
 
         if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then
-          gh "$EVENT_TYPE" edit $PR_NUMBER --remove-label "$ASSIGNEES_TO_REMOVE_STR"
+          gh "$EVENT_TYPE" edit $PR_NUMBER --remove-assignee "$ASSIGNEES_TO_REMOVE_STR"
         fi
 
         if [[ -n "$REVIEWERS_TO_ADD_STR" ]] && [ "$EVENT_TYPE" == "pr" ]; then

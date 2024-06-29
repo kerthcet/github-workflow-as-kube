@@ -14,8 +14,8 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | Approve | /approve | /approve cancel | Only approvers have the privilege |
 | Hold | /hold | /hold cancel | PR will not be merged once hold |
 | Category | /kind _label_name_ | /remove-kind _label_name_ | |
-| Assignment | /assign @_somebody_ | /unassign @_somebody_ | |
-| Review Request | /cc @_somebody_ | /uncc @_somebody_ | |
+| Assignment | /assign @_somebody_ | /unassign @_somebody_ | When @nobody, will assign/unassign to the commenter |
+| Review Request | /cc @_somebody_ | /uncc @_somebody_ | When @nobody, will cc/uncc the commenter |
 | Priority | /priority _priority_name_ | /remove-priority _priority_name_ | |
 
 **NOTE**: PR will be auto-merged once have `lgtm` and `approved` labels and not under hold.

@@ -194,9 +194,6 @@ jobs:
             LABELS_TO_ADD+=("$LABEL")
           elif [[ "$COMMENT_LINE" =~ ^/remove-priority ]]; then
             LABELS_TO_REMOVE+=("$LABEL")
-
-          else
-              echo "$COMMENT_LINE is not supported for $EVENT_TYPE type"
           fi
         done <<< "$COMMENT_BODY"
 
@@ -224,12 +221,14 @@ jobs:
           gh "$EVENT_TYPE" edit $PR_NUMBER --remove-assignee "$ASSIGNEES_TO_REMOVE_STR"
         fi
 
-        if [[ -n "$REVIEWERS_TO_ADD_STR" ]] && [ "$EVENT_TYPE" == "pr" ]; then
-          gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_REMOVE_STR"
-        fi
+        if [ "$EVENT_TYPE" == "pr" ]; then
+          if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
+            gh pr edit $PR_NUMBER --add-reviewer "$ASSIGNEES_TO_REMOVE_STR"
+          fi
 
-        if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]] && [ "$EVENT_TYPE" == "pr" ]; then
-          gh pr edit $PR_NUMBER --remove-reviewer "$ASSIGNEES_TO_REMOVE_STR"
+          if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
+            gh pr edit $PR_NUMBER --remove-reviewer "$ASSIGNEES_TO_REMOVE_STR"
+          fi
         fi
 
   on-pr-merge:

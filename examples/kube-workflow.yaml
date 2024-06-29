@@ -12,6 +12,7 @@ on:
 
 jobs:
   call-workflow:
-    uses: kerthcet/github-workflow-as-kube/.github/workflows/workflow-as-kubernetes.yaml@v0.1.0
+    # Use a released version for stable.
+    uses: kerthcet/github-workflow-as-kube/.github/workflows/workflow-as-kubernetes.yaml@main
     secrets:
       AGENT_TOKEN: ${{ secrets.AGENT_TOKEN }}

@@ -55,9 +55,9 @@ jobs:
         PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
         COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
 
-        if [ "${{ github.event.issue }}" != "" ]; then
+        if [ -n "${{ github.event.issue }}" ]; then
           echo "EVENT_TYPE=issue" >> $GITHUB_ENV
-        elif [ "${{ github.event.pull_request }}" != "" ]; then
+        elif [ -n "${{ github.event.pull_request }}" ]; then
           echo "EVENT_TYPE=pr" >> $GITHUB_ENV
         else
           exit 0

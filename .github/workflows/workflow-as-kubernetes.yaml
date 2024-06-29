@@ -80,46 +80,74 @@ jobs:
             continue
           fi
 
-          # Handle lgtm command
-          if [[ "$COMMENT_LINE" =~ ^/lgtm ]]; then
-            if [[ "$LABEL" =~ ^cancel ]]; then
-              LABELS_TO_REMOVE+=("lgtm")
-              echo "To remove label: lgtm"
-            else
-              LABELS_TO_ADD+=("lgtm")
-              ASSIGNEES_TO_ADD+=("$COMMENT_USER")
-              echo "To add label: lgtm"
-            fi
+          # Handle PR only.
+          if [ "$EVENT_TYPE" == "pr" ]; then
 
-          # Handle approved command
-          elif [[ "$COMMENT_LINE" =~ ^/approve && "$EVENT_TYPE" == "pr" ]]; then
-            if yq ".approvers[] | select(. == \"$COMMENT_USER\") " OWNERS | grep -q "$COMMENT_USER"; then
+            # Handle lgtm command
+            if [[ "$COMMENT_LINE" =~ ^/lgtm ]]; then
               if [[ "$LABEL" =~ ^cancel ]]; then
-                LABELS_TO_REMOVE+=("approved")
-                echo "To remove label: approved"
+                LABELS_TO_REMOVE+=("lgtm")
+                echo "To remove label: lgtm"
               else
-                LABELS_TO_ADD+=("approved")
+                LABELS_TO_ADD+=("lgtm")
                 ASSIGNEES_TO_ADD+=("$COMMENT_USER")
-                echo "To add label: approved"
+                echo "To add label: lgtm"
+              fi
+
+            # Handle approved command
+            elif [[ "$COMMENT_LINE" =~ ^/approve ]]; then
+              if yq ".approvers[] | select(. == \"$COMMENT_USER\") " OWNERS | grep -q "$COMMENT_USER"; then
+                if [[ "$LABEL" =~ ^cancel ]]; then
+                  LABELS_TO_REMOVE+=("approved")
+                  echo "To remove label: approved"
+                else
+                  LABELS_TO_ADD+=("approved")
+                  ASSIGNEES_TO_ADD+=("$COMMENT_USER")
+                  echo "To add label: approved"
+                fi
+              else
+                gh pr comment $PR_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
+                echo "User $COMMENT_USER is not authorized to approve/unapprove this PR"
+              fi
+
+            # Handle hold command
+            # hold/unhold the PR immediately in case of unexpected auto-merge.
+            elif [[ "$COMMENT_LINE" =~ ^/hold ]]; then
+              if [[ "$LABEL" =~ ^cancel ]]; then
+                gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
+                echo "Remove label: do-not-merge/hold"
+              else
+                gh pr edit $PR_NUMBER --add-label do-not-merge/hold
+                echo "Add label: do-not-merge/hold"
+              fi
+
+            # Handle cc
+            elif [[ "$COMMENT_LINE" =~ ^/cc ]]; then
+              USERNAME=$(echo "$LABEL" | sed 's/@//')
+              if [[ -n "$USERNAME" ]]; then
+                REVIEWERS_TO_ADD+=("$USERNAME")
+                echo "To require review from $USERNAME"
+              else
+                REVIEWERS_TO_ADD+=("$COMMENT_USER")
+                echo "To require review from $COMMENT_USER"
+              fi
+            elif [[ "$COMMENT_LINE" =~ ^/uncc ]]; then
+              USERNAME=$(echo "$LABEL" | sed 's/@//')
+              if [[ -n "$USERNAME" ]]; then
+                REVIEWERS_TO_REMOVE+=("$USERNAME")
+                echo "To unrequire review from $USERNAME"
+              else
+                REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
+                echo "To unrequire review from $COMMENT_USER"
               fi
             else
-              gh pr comment $PR_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
-              echo "User $COMMENT_USER is not authorized to approve/unapprove this PR"
+              echo "$COMMENT_LINE is not supported for PR type"
             fi
+          fi
 
-          # Handle hold command
-          # hold/unhold the PR immediately in case of unexpected auto-merge.
-          elif [[ "$COMMENT_LINE" =~ ^/hold && "$EVENT_TYPE" == "pr" ]]; then
-            if [[ "$LABEL" =~ ^cancel ]]; then
-              gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
-              echo "Remove label: do-not-merge/hold"
-            else
-              gh pr edit $PR_NUMBER --add-label do-not-merge/hold
-              echo "Add label: do-not-merge/hold"
-            fi
 
           # Handle kind command
-          elif [[ "$COMMENT_LINE" =~ ^/kind ]]; then
+          if [[ "$COMMENT_LINE" =~ ^/kind ]]; then
             if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
               echo "The label '$LABEL' cannot be added using /kind."
             else
@@ -154,26 +182,6 @@ jobs:
               echo "To unassign to $COMMENT_USER"
             fi
 
-          # Handle cc
-          elif [[ "$COMMENT_LINE" =~ ^/cc && "$EVENT_TYPE" == "pr" ]]; then
-            USERNAME=$(echo "$LABEL" | sed 's/@//')
-            if [[ -n "$USERNAME" ]]; then
-              REVIEWERS_TO_ADD+=("$USERNAME")
-              echo "To require review from $USERNAME"
-            else
-              REVIEWERS_TO_ADD+=("$COMMENT_USER")
-              echo "To require review from $COMMENT_USER"
-            fi
-          elif [[ "$COMMENT_LINE" =~ ^/uncc && "$EVENT_TYPE" == "pr" ]]; then
-            USERNAME=$(echo "$LABEL" | sed 's/@//')
-            if [[ -n "$USERNAME" ]]; then
-              REVIEWERS_TO_REMOVE+=("$USERNAME")
-              echo "To unrequire review from $USERNAME"
-            else
-              REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
-              echo "To unrequire review from $COMMENT_USER"
-            fi
-
           # Handle help & good-first-issue
           elif [[ "$COMMENT_LINE" =~ ^/help ]]; then
             LABELS_TO_ADD+=("help wanted")
@@ -185,14 +193,13 @@ jobs:
             LABELS_TO_REMOVE+=("good first issue")
 
           # Handle priority or similar commands
-          # You should be responsible for what kind of priorities you have.
           elif [[ "$COMMENT_LINE" =~ ^/priority ]]; then
             LABELS_TO_ADD+=("$LABEL")
           elif [[ "$COMMENT_LINE" =~ ^/remove-priority ]]; then
             LABELS_TO_REMOVE+=("$LABEL")
 
           else
-              echo "$COMMENT_LINE is not supported"
+              echo "$COMMENT_LINE is not supported for $EVENT_TYPE type"
           fi
         done <<< "$COMMENT_BODY"
 

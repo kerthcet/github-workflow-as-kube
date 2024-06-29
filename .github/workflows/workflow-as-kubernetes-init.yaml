@@ -26,7 +26,7 @@ jobs:
         gh label create "bug" --color B60205 --description "Categorizes issue or PR as related to a bug." --force
         gh label create "documentation" --color 1D76DB --description "Categorizes issue or PR as related to documentation." --force
 
-        gh label create "lgtm" --color 0E8A16 --description "Looks good to me", indicates that a PR is ready to be merged." --force
+        gh label create "lgtm" --color 0E8A16 --description "Looks good to me, indicates that a PR is ready to be merged." --force
         gh label create "approved" --color 0E8A16 --description "Indicates a PR has been approved by an approver from all required OWNERS files." --force
 
         gh label create "do-not-merge/hold" --color 006B75 --description "Indicates that a PR should not merge because someone has issued a /hold command." --force

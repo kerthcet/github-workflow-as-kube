@@ -227,9 +227,11 @@ jobs:
             gh pr edit $PR_NUMBER --add-reviewer "$REVIEWERS_TO_ADD_STR"
           fi
 
-          # This is not work due to gh issue: https://github.com/orgs/community/discussions/23054
+          # This is not work due to gh issue, see https://github.com/orgs/community/discussions/23054
           if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
             gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
+            REMOVE_EXIT_CODE=$?
+            echo $REMOVE_EXIT_CODE
           fi
         fi
 

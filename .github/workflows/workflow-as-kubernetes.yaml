@@ -229,6 +229,7 @@ jobs:
 
           # This is not work due to gh issue, see https://github.com/orgs/community/discussions/23054
           if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
+            echo $"REVIEWERS_TO_REMOVE_STR"
             gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
             REMOVE_EXIT_CODE=$?
             echo $REMOVE_EXIT_CODE

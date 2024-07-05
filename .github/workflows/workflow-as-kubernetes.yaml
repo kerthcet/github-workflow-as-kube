@@ -55,8 +55,8 @@ jobs:
 
     - name: Issue information
       run: |
-        PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
-        gh issue edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        gh pr edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
 
   # Work for issue & PR, ignore update for now.
   on-new-comment:

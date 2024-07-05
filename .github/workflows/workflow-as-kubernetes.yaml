@@ -32,6 +32,32 @@ jobs:
           echo "Removed 'lgtm' label due to new push."
         fi
 
+  on-issue-opened:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Issue information
+      run: |
+        PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
+        gh issue edit $PR_NUMBER --add-label "needs-triage,needs-kind,needs-priority"
+
+  on-pr-opened:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Issue information
+      run: |
+        PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
+        gh issue edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
+
   # Work for issue & PR, ignore update for now.
   on-new-comment:
     if: (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') && github.event.action == 'created'
@@ -151,6 +177,8 @@ jobs:
             else
               LABELS_TO_ADD+=("$LABEL")
               echo "To add label: '$LABEL'"
+              LABELS_TO_REMOVE+=("needs-kind")
+              LABELS_TO_REMOVE+=("do-not-merge/needs-kind")
             fi
           elif [[ "$COMMENT_LINE" =~ ^/remove-kind ]]; then
             if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
@@ -158,6 +186,23 @@ jobs:
             else
               LABELS_TO_REMOVE+=("$LABEL")
               echo "To remove label: '$LABEL'"
+            fi
+
+          # Handle triage
+          elif [[ "$COMMENT_LINE" =~ ^/wip || "COMMENT_LINE" =~  ^/WIP ]]; then
+            if [[ "$LABEL" =~ ^cancel ]]; then
+              LABELS_TO_REMOVE+=("do-not-merge/work-in-progress")
+            else
+              LABELS_TO_ADD+=("do-not-merge/work-in-progress")
+            fi
+
+          # Handle triage
+          elif [[ "$COMMENT_LINE" =~ ^/triage ]]; then
+            if [[ "$LABEL" =~ ^accepted ]]; then
+              LABELS_TO_ADD+=("triage/accepted")
+              LABELS_TO_REMOVE+=("needs-triage")
+            elif [[ "$LABEL" =~ ^needs-information ]]; then
+              LABELS_TO_ADD+=("triage/needs-information")
             fi
 
           # Handle assignment
@@ -189,12 +234,28 @@ jobs:
             LABELS_TO_ADD+=("good first issue")
           elif [[ "$COMMENT_LINE" =~ ^/remove-good-first-issue ]]; then
             LABELS_TO_REMOVE+=("good first issue")
+          elif [[ "$COMMENT_LINE" =~ ^/retitle ]]; then
+            gh "$EVENT_TYPE" edit $PR_NUMBER --title "$LABEL"
+          elif [[ "$COMMENT_LINE" =~ ^/reopen ]]; then
+            gh "$EVENT_TYPE" reopen $PR_NUMBER
+          elif [[ "$COMMENT_LINE" =~ ^/close ]]; then
+            gh "$EVENT_TYPE" close $PR_NUMBER
 
-          # Handle priority or similar commands
+          # Handle priority
           elif [[ "$COMMENT_LINE" =~ ^/priority ]]; then
             LABELS_TO_ADD+=("$LABEL")
+            LABELS_TO_REMOVE+=("needs-priority")
           elif [[ "$COMMENT_LINE" =~ ^/remove-priority ]]; then
             LABELS_TO_REMOVE+=("$LABEL")
+
+          # Handle milestone
+          elif [[ "$COMMENT_LINE" =~ ^/milestone ]]; then
+            if [[ "$LABEL" =~ ^clear ]]; then
+              gh "$EVENT_TYPE" edit $PR_NUMBER --remove-milestone
+            else
+              gh "$EVENT_TYPE" edit $PR_NUMBER --milestone "$LABEL"
+            fi
+
           fi
         done <<< "$COMMENT_BODY"
 
@@ -246,7 +307,7 @@ jobs:
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge/hold"* ]]; then
+        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
           gh pr merge $PR_NUMBER --merge
           echo "Merge!"
         else

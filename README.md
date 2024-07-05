@@ -13,12 +13,17 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | LGTM | /lgtm | /lgtm cancel | |
 | Approve | /approve | /approve cancel | Only approvers have the privilege |
 | Hold | /hold | /hold cancel | PR will not be merged once hold |
-| Category | /kind _label_name_ | /remove-kind _label_name_ | Support kinds: `feature`, `cleanup`, `bug`, `documentation` and so on... |
+| Category | /kind feature | /remove-kind feature | Support kinds: `feature`, `cleanup`, `bug`, `documentation` and so on... |
 | Assignment | /assign @_somebody_ | /unassign @_somebody_ | When @nobody, will assign/unassign to the commenter |
 | Review Request | /cc @_somebody_ | /uncc @_somebody_ | When @nobody, will cc/uncc the commenter |
-| Priority | /priority _priority_name_ | /remove-priority _priority_name_ | Support priorities: `important-critical-urgent`, `important-soon`, `important-longterm`, `backlog`, `awaiting-more-evidence` |
+| Priority | /priority backlog | /remove-priority backlog | Support priorities: `important-critical-urgent`, `important-soon`, `important-longterm`, `backlog`, `awaiting-more-evidence` |
+| Title | /retitle _title_name_ | No OP | |
+| Lifecycle | /reopen | /close | Authors and collaborators on the repository can trigger this command |
+| Milestone | /milestone v0.0.1 | Not Supported | Create the milestone labels manually |
+| Triage | /triage needs-information | /triage accepted | triage accepted will remove the `needs-triage` label |
+| WIP | /wip | /wip cancel | |
 
-**NOTE**: PR will be auto-merged once have `lgtm` and `approved` labels and not under hold.
+**NOTE**: PR will be auto-merged once have `lgtm` and `approved` labels and no `do-not-merge/*` labels.
 
 ## How To Use
 

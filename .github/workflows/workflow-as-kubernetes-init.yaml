@@ -38,11 +38,11 @@ jobs:
         gh label create "important-critical-urgent" --color ff7500 --description "Highest priority. Must be actively worked on as someone's top priority right now." --force
         gh label create "important-soon" --color ff8936 --description "Must be staffed and worked on either currently, or very soon, ideally in time for the next release." --force
         gh label create "important-longterm" --color ffa400 --description "Important over the long term, but may not be staffed and/or may need multiple releases to complete." --force
-        gh label create "backlog" --color e29c45 --description "Higher priority than priority/awaiting-more-evidence." --force
-        gh label create "awaiting-more-evidence" --color e29c45 --description "Lowest priority. Possibly useful, but not yet enough support to actually get it done." --force
+        gh label create "backlog" --color E9CE8E --description "Higher priority than priority/awaiting-more-evidence." --force
+        gh label create "awaiting-more-evidence" --color FEF2C0 --description "Lowest priority. Possibly useful, but not yet enough support to actually get it done." --force
 
         gh label create "needs-triage" --color EDEDED --description "Indicates an issue or PR lacks a `triage/foo` label and requires one." --force
         gh label create "needs-kind" --color EDEDED --description "Indicates a PR lacks a `kind/foo` label and requires one." --force
         gh label create "needs-priority" --color EDEDED --description "Indicates a PR lacks a `priority/foo` label and requires one." --force
-        gh label create "triage/needs-information" --color 5319E7 --description "Indicates an issue needs more information in order to work on it." --force
+        gh label create "triage/needs-information" --color 9D108A --description "Indicates an issue needs more information in order to work on it." --force
         gh label create "triage/accepted" --color C2E0C6 --description "Indicates an issue or PR is ready to be actively worked on." --force

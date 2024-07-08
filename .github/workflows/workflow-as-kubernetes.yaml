@@ -112,6 +112,7 @@ jobs:
             if [[ "$COMMENT_LINE" =~ ^/lgtm ]]; then
               if [[ "$LABEL" =~ ^cancel ]]; then
                 LABELS_TO_REMOVE+=("lgtm")
+                ASSIGNEES_TO_REMOVE+=("$COMMENT_USER")
                 echo "To remove label: lgtm"
               else
                 LABELS_TO_ADD+=("lgtm")
@@ -127,7 +128,6 @@ jobs:
                   echo "To remove label: approved"
                 else
                   LABELS_TO_ADD+=("approved")
-                  ASSIGNEES_TO_ADD+=("$COMMENT_USER")
                   echo "To add label: approved"
                 fi
               else

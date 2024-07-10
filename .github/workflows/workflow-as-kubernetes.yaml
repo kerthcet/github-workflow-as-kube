@@ -253,7 +253,7 @@ jobs:
           # Handle milestone
           elif [[ "$COMMENT_LINE" =~ ^/milestone ]]; then
             if [[ "$LABEL" =~ ^clear ]]; then
-              gh "$EVENT_TYPE" edit $PR_NUMBER --remove-milestone
+              gh "$EVENT_TYPE" edit $PR_NUMBER --milestone ""
             else
               gh "$EVENT_TYPE" edit $PR_NUMBER --milestone "$LABEL"
             fi

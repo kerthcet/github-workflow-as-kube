@@ -19,7 +19,7 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | Priority | /priority backlog | /remove-priority backlog | Support priorities: `important-critical-urgent`, `important-soon`, `important-longterm`, `backlog`, `awaiting-more-evidence` |
 | Title | /retitle _title_name_ | No OP | |
 | Lifecycle | /reopen | /close | Authors and collaborators on the repository can trigger this command |
-| Milestone | /milestone v0.0.1 | Not Supported | Create the milestone labels manually |
+| Milestone | /milestone v0.0.1 | /milestone clear | Create the milestone labels manually in advance |
 | Triage | /triage needs-information | /triage accepted | triage accepted will remove the `needs-triage` label |
 | WIP | /wip | /wip cancel | |
 

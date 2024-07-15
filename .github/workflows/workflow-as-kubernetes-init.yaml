@@ -21,10 +21,10 @@ jobs:
       run: |
         # All needs-xxx should use #EDEDED.
 
-        gh label create "feature" --color 1D76DB --description "Categorizes issue or PR as related to a new feature." --force
-        gh label create "cleanup" --color 1D76DB --description "Categorizes issue or PR as related to cleaning up code, process, or technical debt." --force
+        gh label create "feature" --color 99CCFF --description "Categorizes issue or PR as related to a new feature." --force
+        gh label create "cleanup" --color C5DEF5 --description "Categorizes issue or PR as related to cleaning up code, process, or technical debt." --force
         gh label create "bug" --color B60205 --description "Categorizes issue or PR as related to a bug." --force
-        gh label create "documentation" --color 1D76DB --description "Categorizes issue or PR as related to documentation." --force
+        gh label create "documentation" --color C5DEF5 --description "Categorizes issue or PR as related to documentation." --force
         gh label create "failing-test" --color B60205 --description "Categorizes issue or PR as related to a consistently or frequently failing test." --force
 
         gh label create "lgtm" --color 0E8A16 --description "Looks good to me, indicates that a PR is ready to be merged." --force

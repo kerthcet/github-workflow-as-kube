@@ -21,6 +21,7 @@ jobs:
       run: |
         # All needs-xxx should use #EDEDED.
 
+        gh label create "enhancement" --color 99CCFF --description "Categorizes issue or PR as related to a new feature with API changes." --force
         gh label create "feature" --color 99CCFF --description "Categorizes issue or PR as related to a new feature." --force
         gh label create "cleanup" --color C5DEF5 --description "Categorizes issue or PR as related to cleaning up code, process, or technical debt." --force
         gh label create "bug" --color B60205 --description "Categorizes issue or PR as related to a bug." --force

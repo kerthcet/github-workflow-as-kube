@@ -5,9 +5,13 @@ on:
     types:
       - opened
       - synchronize
+  pull_request_target:
+    types:
+      - labeled
+      - unlabeled
 
 jobs:
-  call-workflow:
+  golang-ci:
     # Use a released version for stable.
     uses: kerthcet/github-workflow-as-kube/.github/workflows/workflow-golang-ci.yaml@main
     secrets:

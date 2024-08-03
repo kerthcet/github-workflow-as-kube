@@ -13,7 +13,7 @@ env:
   CGO_ENABLED: "0"
 
 jobs:
-  golangci:
+  golang-ci:
     name: golang-lint
     runs-on: ubuntu-latest
     steps:
@@ -59,3 +59,23 @@ jobs:
     - name: Run e2e tests
       run: |
         make test-e2e
+
+  pr-merge:
+    if: github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    needs: [golang-ci, unit-test, integration-test, e2e-test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Merge PR if approved and lgtm
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+          gh pr merge $PR_NUMBER --merge
+          echo "Merge!"
+        else
+          echo "Not ready to merge"
+        fi

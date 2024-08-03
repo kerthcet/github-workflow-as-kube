@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  call-workflow:
+  init:
     # Use a released version for stable.
     uses: kerthcet/github-workflow-as-kube/.github/workflows/workflow-as-kubernetes-init.yaml@main
     secrets:

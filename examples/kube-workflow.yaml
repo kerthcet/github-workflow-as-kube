@@ -10,12 +10,10 @@ on:
   pull_request_target:
     types:
       - opened
-      - labeled
-      - unlabeled
       - synchronize
 
 jobs:
-  call-workflow:
+  event-handler:
     # Use a released version for stable.
     uses: kerthcet/github-workflow-as-kube/.github/workflows/workflow-as-kubernetes.yaml@main
     secrets:

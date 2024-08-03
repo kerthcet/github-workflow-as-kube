@@ -295,23 +295,3 @@ jobs:
             gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
           fi
         fi
-
-  on-pr-merge:
-    if: github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    # TODO: Before merge, better to run the tests again.
-    - name: Merge PR if approved and lgtm
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-          gh pr merge $PR_NUMBER --merge
-          echo "Merge!"
-        else
-          echo "Not ready to merge"
-        fi

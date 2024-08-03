@@ -1,4 +1,4 @@
-name: Golang CI Workflow
+name: Workflow for Golang CI
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ env:
 
 jobs:
   golangci:
-    name: lint
+    name: golang-lint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-go@v5
@@ -48,3 +48,14 @@ jobs:
     - name: Run integration tests
       run: |
         make test-integration
+
+  e2e-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run e2e tests
+      run: |
+        make test-e2e

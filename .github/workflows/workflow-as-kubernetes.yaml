@@ -304,47 +304,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Check pr status
-      id: check_pr
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-
-        # Define a function to check the status
-        check_status() {
-          gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" \
-            -H "Authorization: token $GH_TOKEN" \
-            --jq '.mergeable_state'
-        }
-
-        # Check the status and retry if pending
-        max_attempts=10
-        attempt=0
-        status=$(check_status)
-
-        while [ "$status" == "unknown" ] && [ $attempt -lt $max_attempts ]; do
-          echo "Status is pending. Sleeping for 1 minute..."
-          sleep 60
-          status=$(check_status)
-          attempt=$((attempt + 1))
-        done
-
-        echo "Final status: $status"
-        if [ "$status" != "clean" ]; then
-          echo "The checks have not all passed."
-          echo "::set-output name=checks_passed::false"
-        else
-          echo "All checks have passed."
-          echo "::set-output name=checks_passed::true"
-        fi
-
-    - name: Trigger PR auto-merge if lgtm and approved
-      if: steps.check_pr.outputs.checks_passed == 'true'
+    - name: Auto-merge if lgtm and approved
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
         if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-          gh pr edit $PR_NUMBER --add-label auto-merge
-          echo "Trigger auto merge!"
+          gh pr merge $PR_NUMBER --merge
+          echo "Auto merge"
         else
           echo "Not ready to merge"
         fi

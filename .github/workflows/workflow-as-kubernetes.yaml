@@ -315,6 +315,8 @@ jobs:
 
         check_status() {
           CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json status,conclusion --jq '.checks')
+          echo "Raw checks data: $CHECKS"  # 输出原始 JSON 数据，调试用
+
           IN_PROGRESS=0
           SUCCESSFUL=0
           SKIPPED=0

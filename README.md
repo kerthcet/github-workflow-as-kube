@@ -23,7 +23,7 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | Triage | /triage needs-information | /triage accepted | triage accepted will remove the `needs-triage` label |
 | WIP | /wip | /wip cancel | |
 
-**NOTE**: PR will be auto-merged once have `lgtm`, `approved` and no `do-not-merge/*` labels, even the tests are failed, so be careful when labelling `lgtm` and `approved` labels. This is slightly different with Kubernetes because of the limitations of github workflow, at least to my understandings.
+**NOTE**: PR will be auto-merged once have `lgtm`, `approved` and no `do-not-merge/*` labels and all the workflow checks are passed like the ci tests.
 
 ## How To Use
 
@@ -39,13 +39,12 @@ Then it should work now.
 
 ## Other workflows
 
-We support other workflows as well, you can select as your need.
+We support other workflows as well, you can select as your needed:
 
 - Golang ci workflow: running golang ci, golang tests. You should provide `make test`, `make test-integration`, `make test-e2e` primitives.
 
 ## Roadmap
 
 - Dispatch reviewers
-- Test workflow support
 - PR review by AI agent.
 - PR size detecting support

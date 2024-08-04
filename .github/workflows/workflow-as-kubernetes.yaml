@@ -330,19 +330,19 @@ jobs:
           # 1 means the auto-merge itself.
           if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
             echo "All checks passed or skipped."
-            return 0
+            echo "STATUS=0" >> $GITHUB_ENV
           elif [ $FAILURE_COUNT -gt 0 ]; then
             echo "Some checks failed."
-            return 1
+            echo "STATUS=1" >> $GITHUB_ENV
           else
             echo "Some checks are still in progress."
-            return 2
+            echo "STATUS=2" >> $GITHUB_ENV
           fi
         }
 
         attempt=0
         while [ $attempt -lt $MAX_ATTEMPTS ]; do
-          status=$(check_status)
+          status=env.STATUS
           echo "status: $status"
           if [ $status -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."

@@ -330,26 +330,25 @@ jobs:
 
           # 1 means the auto-merge itself.
           if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
-            echo "All checks passed or skipped."
             STATUS=0
+            echo "All checks passed or skipped."
           elif [ $FAILURE_COUNT -gt 0 ]; then
-            echo "Some checks failed."
             STATUS=1
+            echo "Some checks failed."
           else
-            echo "Some checks are still in progress."
             STATUS=2
+            echo "Some checks are still in progress."
           fi
         }
 
         attempt=0
         while [ $attempt -lt $MAX_ATTEMPTS ]; do
-          status="$STATUS"
-          echo "status: $status"
-          if [ $status -eq 0 ]; then
+          echo "status: $STATUS"
+          if [ $STATUS -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."
             echo "::set-output name=checks_passed::true"
             exit 0
-          elif [ $status -eq 1 ]; then
+          elif [ $STATUS -eq 1 ]; then
             echo "Checks failed. Exiting."
             echo "::set-output name=checks_passed::false"
             exit 1

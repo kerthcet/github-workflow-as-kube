@@ -304,7 +304,79 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Check PR Status
+      id: check_status
+      run: |
+        #!/bin/bash
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        REPO=${{ github.repository }}
+        MAX_ATTEMPTS=10
+        SLEEP_INTERVAL=60
+
+        check_status() {
+          CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json status,conclusion --jq '.checks')
+          IN_PROGRESS=0
+          SUCCESSFUL=0
+          SKIPPED=0
+          FAILED=0
+
+          for row in $(echo "${CHECKS}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r ${1}
+            }
+
+            STATUS=$(_jq '.status')
+            CONCLUSION=$(_jq '.conclusion')
+
+            if [ "$STATUS" == "in_progress" ]; then
+              IN_PROGRESS=$((IN_PROGRESS + 1))
+            elif [ "$STATUS" == "completed" ]; then
+              if [ "$CONCLUSION" == "success" ]; then
+                SUCCESSFUL=$((SUCCESSFUL + 1))
+              elif [ "$CONCLUSION" == "skipped" ]; then
+                SKIPPED=$((SKIPPED + 1))
+              else
+                FAILED=$((FAILED + 1))
+              fi
+            fi
+          done
+
+          echo "In progress: $IN_PROGRESS"
+          echo "Successful: $SUCCESSFUL"
+          echo "Skipped: $SKIPPED"
+          echo "Failed: $FAILED"
+
+          if [ $IN_PROGRESS -eq 0 ] && [ $FAILED -eq 0 ]; then
+            echo "All checks passed or skipped."
+            return 0
+          elif [ $FAILED -gt 0 ]; then
+            echo "Some checks failed."
+            return 1
+          else
+            echo "Some checks are still in progress."
+            return 2
+          fi
+        }
+
+        attempt=0
+        while [ $attempt -lt $MAX_ATTEMPTS ]; do
+          check_status
+          status=$?
+          if [ $status -eq 0 ]; then
+            echo "Checks passed. Proceeding with merge."
+            echo "::set-output name=checks_passed::true"
+          elif [ $status -eq 1 ]; then
+            echo "Checks failed. Exiting."
+            echo "::set-output name=checks_passed::false"
+          else
+            echo "Waiting for checks to complete..."
+            sleep $SLEEP_INTERVAL
+            attempt=$((attempt + 1))
+          fi
+        done
+
     - name: Auto-merge if lgtm and approved
+      if: steps.check_status.outputs.checks_passed == 'true'
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')

@@ -307,14 +307,13 @@ jobs:
     - name: Check pr status
       id: check_pr
       run: |
-        pr_number=$(gh pr view --json number -q ".number")
-        commit_sha=$(gh pr view $pr_number --json commits -q ".commits[-1].oid")
+        PR_NUMBER=${{ github.event.pull_request.number }}
 
         # Define a function to check the status
         check_status() {
-          gh api repos/${{ github.repository }}/commits/$commit_sha/status \
+          gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" \
             -H "Authorization: token $GH_TOKEN" \
-            --jq '.state'
+            --jq '.mergeable_state'
         }
 
         # Check the status and retry if pending

@@ -1,4 +1,4 @@
-name: Workflow As Kubernetes
+name: Event Workflow
 
 on:
   issues:
@@ -11,6 +11,8 @@ on:
     types:
       - opened
       - synchronize
+      - labeled
+      - unlabeled
 
 jobs:
   event-handler:

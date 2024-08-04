@@ -1,0 +1,19 @@
+name: Test Passed
+
+on:
+  workflow_dispatch:
+
+env:
+  GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
+
+jobs:
+  test-passed:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Add test-passed label
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        gh edit $PR_NUMBER --add-label "test-passed"

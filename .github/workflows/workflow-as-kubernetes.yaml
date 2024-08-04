@@ -310,8 +310,10 @@ jobs:
         PR_NUMBER=${{ github.event.pull_request.number }}
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
         if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+          echo "Ready to merge"
           echo "::set-output name=ready::true"
         else
+          echo "Not ready to merge"
           echo "::set-output name=ready::false"
         fi
 

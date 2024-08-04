@@ -316,11 +316,11 @@ jobs:
         check_status() {
           CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json state)
 
-          SUCCESS_COUNT=$(jq '[.[] | select(.state == "SUCCESS")] | length' CHECKS)
-          FAILURE_COUNT=$(jq '[.[] | select(.state == "FAILURE")] | length' CHECKS)
-          SKIPPED_COUNT=$(jq '[.[] | select(.state == "SKIPPED")] | length' CHECKS)
-          QUEUED_COUNT=$(jq '[.[] | select(.state == "QUEUED")] | length' CHECKS)
-          WIP_COUNT=$(jq '[.[] | select(.state == "IN_PROGRESS")] | length' CHECKS)
+          SUCCESS_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SUCCESS")] | length')
+          FAILURE_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "FAILURE")] | length')
+          SKIPPED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SKIPPED")] | length')
+          QUEUED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "QUEUED")] | length')
+          WIP_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "IN_PROGRESS")] | length')
 
           if [ $WIP_COUNT -eq 0 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
             echo "All checks passed or skipped."

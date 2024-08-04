@@ -27,6 +27,7 @@ jobs:
         gh label create "bug" --color B60205 --description "Categorizes issue or PR as related to a bug." --force
         gh label create "documentation" --color C5DEF5 --description "Categorizes issue or PR as related to documentation." --force
         gh label create "failing-test" --color B60205 --description "Categorizes issue or PR as related to a consistently or frequently failing test." --force
+        gh label create "support" --color d876e3 --description "Categorizes issue or PR as related to support." --force
 
         gh label create "lgtm" --color 0E8A16 --description "Looks good to me, indicates that a PR is ready to be merged." --force
         gh label create "approved" --color 0E8A16 --description "Indicates a PR has been approved by an approver from all required OWNERS files." --force

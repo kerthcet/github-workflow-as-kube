@@ -343,7 +343,7 @@ jobs:
 
         attempt=0
         while [ $attempt -lt $MAX_ATTEMPTS ]; do
-          status=$STATUS
+          status="$STATUS"
           echo "status: $status"
           if [ $status -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."

@@ -312,6 +312,7 @@ jobs:
         REPO=${{ github.repository }}
         MAX_ATTEMPTS=10
         SLEEP_INTERVAL=60
+        STATUS=""
 
         check_status() {
           CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json state)
@@ -330,19 +331,19 @@ jobs:
           # 1 means the auto-merge itself.
           if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
             echo "All checks passed or skipped."
-            echo "STATUS=0" >> $GITHUB_ENV
+            STATUS=0
           elif [ $FAILURE_COUNT -gt 0 ]; then
             echo "Some checks failed."
-            echo "STATUS=1" >> $GITHUB_ENV
+            STATUS=1
           else
             echo "Some checks are still in progress."
-            echo "STATUS=2" >> $GITHUB_ENV
+            STATUS=2
           fi
         }
 
         attempt=0
         while [ $attempt -lt $MAX_ATTEMPTS ]; do
-          status=env.STATUS
+          status=$STATUS
           echo "status: $status"
           if [ $status -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."

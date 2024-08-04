@@ -327,7 +327,8 @@ jobs:
           echo $QUEUED_COUNT
           echo $SUCCESS_COUNT
 
-          if [ $WIP_COUNT -eq 0 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
+          # 1 means the auto-merge itself.
+          if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
             echo "All checks passed or skipped."
             return 0
           elif [ $FAILURE_COUNT -gt 0 ]; then
@@ -347,15 +348,21 @@ jobs:
           if [ $status -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."
             echo "::set-output name=checks_passed::true"
+            exit 0
           elif [ $status -eq 1 ]; then
             echo "Checks failed. Exiting."
             echo "::set-output name=checks_passed::false"
+            exit 1
           else
             echo "Waiting for checks to complete..."
             sleep $SLEEP_INTERVAL
             attempt=$((attempt + 1))
           fi
         done
+
+        echo "Max attempts reached. Some checks are still in progress. Exiting."
+        echo "::set-output name=checks_passed::false"
+        exit 1
 
     - name: Auto-merge if lgtm and approved
       if: steps.check_status.outputs.checks_passed == 'true'

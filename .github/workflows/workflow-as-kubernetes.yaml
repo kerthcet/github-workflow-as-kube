@@ -322,6 +322,11 @@ jobs:
           QUEUED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "QUEUED")] | length')
           WIP_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "IN_PROGRESS")] | length')
 
+          echo $WIP_COUNT
+          echo $FAILURE_COUNT
+          echo $QUEUED_COUNT
+          echo $SUCCESS_COUNT
+
           if [ $WIP_COUNT -eq 0 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
             echo "All checks passed or skipped."
             return 0

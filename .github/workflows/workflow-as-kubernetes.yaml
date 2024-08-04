@@ -304,15 +304,32 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Check lgtm and approved
+      id: check_label
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+          echo "::set-output name=ready::true"
+        else
+          echo "::set-output name=ready::false"
+        fi
+
     - name: Check PR Status
       id: check_status
+      if: steps.check_label.outputs.ready == 'true'
       run: |
         #!/bin/bash
         PR_NUMBER=${{ github.event.pull_request.number }}
         REPO=${{ github.repository }}
         MAX_ATTEMPTS=10
-        SLEEP_INTERVAL=60
+        SLEEP_INTERVAL=30
         STATUS=""
+
+        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+        if ![[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+          exit 0
+        fi
 
         check_status() {
           CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json state)
@@ -322,11 +339,6 @@ jobs:
           SKIPPED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SKIPPED")] | length')
           QUEUED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "QUEUED")] | length')
           WIP_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "IN_PROGRESS")] | length')
-
-          echo $WIP_COUNT
-          echo $FAILURE_COUNT
-          echo $QUEUED_COUNT
-          echo $SUCCESS_COUNT
 
           # 1 means the auto-merge itself.
           if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
@@ -344,14 +356,15 @@ jobs:
         attempt=0
         while [ $attempt -lt $MAX_ATTEMPTS ]; do
           check_status
-          echo "status: $STATUS"
+          echo "STATUS: $STATUS"
+
           if [ $STATUS -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."
-            echo "::set-output name=checks_passed::true"
+            echo "::set-output name=ready::true"
             exit 0
           elif [ $STATUS -eq 1 ]; then
             echo "Checks failed. Exiting."
-            echo "::set-output name=checks_passed::false"
+            echo "::set-output name=ready::false"
             exit 1
           else
             echo "Waiting for checks to complete..."
@@ -361,17 +374,12 @@ jobs:
         done
 
         echo "Max attempts reached. Some checks are still in progress. Exiting."
-        echo "::set-output name=checks_passed::false"
+        echo "::set-output name=ready::false"
         exit 1
 
-    - name: Auto-merge if lgtm and approved
-      if: steps.check_status.outputs.checks_passed == 'true'
+    - name: Auto-merge
+      if: steps.check_label.outputs.ready == 'true' && steps.check_status.outputs.ready == 'true'
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
-        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-          gh pr merge $PR_NUMBER --merge
-          echo "Auto merge"
-        else
-          echo "Not ready to merge"
-        fi
+        gh pr merge $PR_NUMBER --merge
+        echo "Auto merged"

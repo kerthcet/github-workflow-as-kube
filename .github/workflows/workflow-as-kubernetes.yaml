@@ -321,7 +321,7 @@ jobs:
         attempt=0
         status=$(check_status)
 
-        while [ "$status" == "pending" ] && [ $attempt -lt $max_attempts ]; do
+        while [ "$status" == "unknown" ] && [ $attempt -lt $max_attempts ]; do
           echo "Status is pending. Sleeping for 1 minute..."
           sleep 60
           status=$(check_status)
@@ -329,7 +329,7 @@ jobs:
         done
 
         echo "Final status: $status"
-        if [ "$status" != "success" ]; then
+        if [ "$status" != "clean" ]; then
           echo "The checks have not all passed."
           echo "::set-output name=checks_passed::false"
         else

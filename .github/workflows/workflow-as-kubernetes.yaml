@@ -338,6 +338,7 @@ jobs:
         while [ $attempt -lt $MAX_ATTEMPTS ]; do
           check_status
           status=$?
+          echo "$status"
           if [ $status -eq 0 ]; then
             echo "Checks passed. Proceeding with merge."
             echo "::set-output name=checks_passed::true"

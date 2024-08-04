@@ -314,44 +314,18 @@ jobs:
         SLEEP_INTERVAL=60
 
         check_status() {
-          CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json status,conclusion --jq '.checks')
-          echo "Raw checks data: $CHECKS"  # 输出原始 JSON 数据，调试用
+          CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json state)
 
-          IN_PROGRESS=0
-          SUCCESSFUL=0
-          SKIPPED=0
-          FAILED=0
+          SUCCESS_COUNT=$(jq '[.[] | select(.state == "SUCCESS")] | length' CHECKS)
+          FAILURE_COUNT=$(jq '[.[] | select(.state == "FAILURE")] | length' CHECKS)
+          SKIPPED_COUNT=$(jq '[.[] | select(.state == "SKIPPED")] | length' CHECKS)
+          QUEUED_COUNT=$(jq '[.[] | select(.state == "QUEUED")] | length' CHECKS)
+          WIP_COUNT=$(jq '[.[] | select(.state == "IN_PROGRESS")] | length' CHECKS)
 
-          for row in $(echo "${CHECKS}" | jq -r '.[] | @base64'); do
-            _jq() {
-              echo ${row} | base64 --decode | jq -r ${1}
-            }
-
-            STATUS=$(_jq '.status')
-            CONCLUSION=$(_jq '.conclusion')
-
-            if [ "$STATUS" == "in_progress" ]; then
-              IN_PROGRESS=$((IN_PROGRESS + 1))
-            elif [ "$STATUS" == "completed" ]; then
-              if [ "$CONCLUSION" == "success" ]; then
-                SUCCESSFUL=$((SUCCESSFUL + 1))
-              elif [ "$CONCLUSION" == "skipped" ]; then
-                SKIPPED=$((SKIPPED + 1))
-              else
-                FAILED=$((FAILED + 1))
-              fi
-            fi
-          done
-
-          echo "In progress: $IN_PROGRESS"
-          echo "Successful: $SUCCESSFUL"
-          echo "Skipped: $SKIPPED"
-          echo "Failed: $FAILED"
-
-          if [ $IN_PROGRESS -eq 0 ] && [ $FAILED -eq 0 ]; then
+          if [ $WIP_COUNT -eq 0 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
             echo "All checks passed or skipped."
             return 0
-          elif [ $FAILED -gt 0 ]; then
+          elif [ $FAILURE_COUNT -gt 0 ]; then
             echo "Some checks failed."
             return 1
           else

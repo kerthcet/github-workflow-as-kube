@@ -22,6 +22,7 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | Milestone | /milestone v0.0.1 | /milestone clear | Create the milestone labels manually in advance |
 | Triage | /triage needs-information | /triage accepted | triage accepted will remove the `needs-triage` label |
 | WIP | /wip | /wip cancel | |
+| API Change | /kind api-change | /remove-kind api-change | |
 
 **NOTE**: PR will be auto-merged once have `lgtm`, `approved` and no `do-not-merge/*` labels and all the workflow checks are passed like the ci tests.
 

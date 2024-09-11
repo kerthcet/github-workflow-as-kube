@@ -2,6 +2,11 @@ name: Publish Helm Chart
 
 on:
   workflow_call:
+    inputs:
+      repo_url:
+        description: 'repo url'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -28,7 +33,7 @@ jobs:
       run: helm package ./chart -d ./helm-packages
 
     - name: Create Helm Repo Index
-      run: helm repo index ./helm-packages --url https://inftyai.github.io/llmaz
+      run: helm repo index ./helm-packages --url ${{ inputs.repo_url }}
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3

@@ -2,6 +2,9 @@ name: Publish Helm Chart
 
 on:
   workflow_call:
+    secrets:
+      AGENT_TOKEN:
+        required: true
     inputs:
       repo_url:
         description: 'repo url'

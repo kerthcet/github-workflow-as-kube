@@ -49,4 +49,4 @@ jobs:
         gh label create "triage/needs-information" --color 9D108A --description "Indicates an issue needs more information in order to work on it." --force
         gh label create "triage/accepted" --color C2E0C6 --description "Indicates an issue or PR is ready to be actively worked on." --force
 
-        gh label create "api-change" --color B3308D --description "Indicates PR includes api change." --force
+        gh label create "api-change" --color E99695 --description "Indicates PR includes api change." --force

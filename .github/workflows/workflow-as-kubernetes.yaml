@@ -324,8 +324,8 @@ jobs:
         #!/bin/bash
         PR_NUMBER=${{ github.event.pull_request.number }}
         REPO=${{ github.repository }}
-        MAX_ATTEMPTS=10
-        SLEEP_INTERVAL=30
+        MAX_ATTEMPTS=60
+        SLEEP_INTERVAL=5
         STATUS=""
 
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')

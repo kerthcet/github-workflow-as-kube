@@ -324,7 +324,7 @@ jobs:
         #!/bin/bash
         PR_NUMBER=${{ github.event.pull_request.number }}
         REPO=${{ github.repository }}
-        MAX_ATTEMPTS=60
+        MAX_ATTEMPTS=120
         SLEEP_INTERVAL=5
         STATUS=""
 

@@ -15,48 +15,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Remove lgtm label on new push
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
+      - name: Remove lgtm label on new push
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
 
-        if [ -z "$PR_NUMBER" ]; then
-         echo "No PR number found in push event context."
-          exit 0
-        fi
+          if [ -z "$PR_NUMBER" ]; then
+           echo "No PR number found in push event context."
+            exit 0
+          fi
 
-        if gh pr view $PR_NUMBER --json labels --jq '.labels[].name' | grep -q "lgtm"; then
-          gh pr edit $PR_NUMBER --remove-label lgtm
-          echo "Removed 'lgtm' label due to new push."
-        fi
+          if gh pr view $PR_NUMBER --json labels --jq '.labels[].name' | grep -q "lgtm"; then
+            gh pr edit $PR_NUMBER --remove-label lgtm
+            echo "Removed 'lgtm' label due to new push."
+          fi
 
   on-issue-opened:
     if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Issue information
-      run: |
-        PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
-        gh issue edit $PR_NUMBER --add-label "needs-triage,needs-kind,needs-priority"
+      - name: Issue information
+        run: |
+          PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
+          gh issue edit $PR_NUMBER --add-label "needs-triage,needs-kind,needs-priority"
 
   on-pr-opened:
     if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Issue information
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        gh pr edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
+      - name: Issue information
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          gh pr edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
 
   # Work for issue & PR, ignore update for now.
   on-new-comment:
@@ -64,328 +64,328 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    - name: Install yq
-      run: pip install yq
+      - name: Install yq
+        run: pip install yq
 
-    - name: Handle Issue Comments
-      run: |
-        COMMENT_BODY=$(jq -r '.comment.body' $GITHUB_EVENT_PATH)
-        PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
-        COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
-        EVENT_TYPE=""
+      - name: Handle Issue Comments
+        run: |
+          COMMENT_BODY=$(jq -r '.comment.body' $GITHUB_EVENT_PATH)
+          PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
+          COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
+          EVENT_TYPE=""
 
-        if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
-          EVENT_TYPE="pr"
-        else
-          EVENT_TYPE="issue"
-        fi
-
-        # Initialize arrays to store the labels.
-        LABELS_TO_ADD=()
-        LABELS_TO_REMOVE=()
-        ASSIGNEES_TO_ADD=()
-        ASSIGNEES_TO_REMOVE=()
-        REVIEWERS_TO_ADD=()
-        REVIEWERS_TO_REMOVE=()
-
-        while IFS= read -r COMMENT_LINE; do
-          COMMENT_LINE=$(echo "$COMMENT_LINE" | sed 's/^[ \t]*//;s/[ \t]*$//' | tr -d '\r\n' | awk '{$1=$1};1')
-          LABEL=$(echo "$COMMENT_LINE" | awk '{print $2}')
-          REMAINING_CONTENT=$(echo "$COMMENT_LINE" | awk '{ $1=""; print substr($0,2) }')
-
-          if [[ ! "$COMMENT_LINE" =~ ^/ ]]; then
-            continue
+          if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
+            EVENT_TYPE="pr"
+          else
+            EVENT_TYPE="issue"
           fi
 
-          # Handle PR only.
-          if [ "$EVENT_TYPE" == "pr" ]; then
+          # Initialize arrays to store the labels.
+          LABELS_TO_ADD=()
+          LABELS_TO_REMOVE=()
+          ASSIGNEES_TO_ADD=()
+          ASSIGNEES_TO_REMOVE=()
+          REVIEWERS_TO_ADD=()
+          REVIEWERS_TO_REMOVE=()
 
-            # Handle lgtm command
-            if [[ "$COMMENT_LINE" =~ ^/lgtm ]]; then
-              if [[ "$LABEL" =~ ^cancel ]]; then
-                LABELS_TO_REMOVE+=("lgtm")
-                ASSIGNEES_TO_REMOVE+=("$COMMENT_USER")
-                echo "To remove label: lgtm"
-              else
-                LABELS_TO_ADD+=("lgtm")
-                ASSIGNEES_TO_ADD+=("$COMMENT_USER")
-                echo "To add label: lgtm"
-              fi
+          while IFS= read -r COMMENT_LINE; do
+            COMMENT_LINE=$(echo "$COMMENT_LINE" | sed 's/^[ \t]*//;s/[ \t]*$//' | tr -d '\r\n' | awk '{$1=$1};1')
+            LABEL=$(echo "$COMMENT_LINE" | awk '{print $2}')
+            REMAINING_CONTENT=$(echo "$COMMENT_LINE" | awk '{ $1=""; print substr($0,2) }')
 
-            # Handle approved command
-            elif [[ "$COMMENT_LINE" =~ ^/approve ]]; then
-              if yq ".approvers[] | select(. == \"$COMMENT_USER\") " OWNERS | grep -q "$COMMENT_USER"; then
+            if [[ ! "$COMMENT_LINE" =~ ^/ ]]; then
+              continue
+            fi
+
+            # Handle PR only.
+            if [ "$EVENT_TYPE" == "pr" ]; then
+
+              # Handle lgtm command
+              if [[ "$COMMENT_LINE" =~ ^/lgtm ]]; then
                 if [[ "$LABEL" =~ ^cancel ]]; then
-                  LABELS_TO_REMOVE+=("approved")
-                  echo "To remove label: approved"
+                  LABELS_TO_REMOVE+=("lgtm")
+                  ASSIGNEES_TO_REMOVE+=("$COMMENT_USER")
+                  echo "To remove label: lgtm"
                 else
-                  LABELS_TO_ADD+=("approved")
-                  echo "To add label: approved"
+                  LABELS_TO_ADD+=("lgtm")
+                  ASSIGNEES_TO_ADD+=("$COMMENT_USER")
+                  echo "To add label: lgtm"
+                fi
+
+              # Handle approved command
+              elif [[ "$COMMENT_LINE" =~ ^/approve ]]; then
+                if yq ".approvers[] | select(. == \"$COMMENT_USER\") " OWNERS | grep -q "$COMMENT_USER"; then
+                  if [[ "$LABEL" =~ ^cancel ]]; then
+                    LABELS_TO_REMOVE+=("approved")
+                    echo "To remove label: approved"
+                  else
+                    LABELS_TO_ADD+=("approved")
+                    echo "To add label: approved"
+                  fi
+                else
+                  gh pr comment $PR_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
+                  echo "User $COMMENT_USER is not authorized to approve/unapprove this PR"
+                fi
+
+              # Handle hold command
+              # hold/unhold the PR immediately in case of unexpected auto-merge.
+              elif [[ "$COMMENT_LINE" =~ ^/hold ]]; then
+                if [[ "$LABEL" =~ ^cancel ]]; then
+                  gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
+                  echo "Remove label: do-not-merge/hold"
+                else
+                  gh pr edit $PR_NUMBER --add-label do-not-merge/hold
+                  echo "Add label: do-not-merge/hold"
+                fi
+
+              # Handle cc
+              # Can not require review from the author.
+              elif [[ "$COMMENT_LINE" =~ ^/cc ]]; then
+                USERNAME=$(echo "$LABEL" | sed 's/@//')
+                if [[ -n "$USERNAME" ]]; then
+                  REVIEWERS_TO_ADD+=("$USERNAME")
+                  echo "To require review from $USERNAME"
+                else
+                  REVIEWERS_TO_ADD+=("$COMMENT_USER")
+                  echo "To require review from $COMMENT_USER"
+                fi
+              elif [[ "$COMMENT_LINE" =~ ^/uncc ]]; then
+                USERNAME=$(echo "$LABEL" | sed 's/@//')
+                if [[ -n "$USERNAME" ]]; then
+                  REVIEWERS_TO_REMOVE+=("$USERNAME")
+                  echo "To unrequire review from $USERNAME"
+                else
+                  REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
+                  echo "To unrequire review from $COMMENT_USER"
                 fi
               else
-                gh pr comment $PR_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
-                echo "User $COMMENT_USER is not authorized to approve/unapprove this PR"
+                echo "$COMMENT_LINE is not supported for PR type"
+              fi
+            fi
+
+            # Handle kind command
+            if [[ "$COMMENT_LINE" =~ ^/kind ]]; then
+              if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
+                echo "The label '$LABEL' cannot be added using /kind."
+              else
+                LABELS_TO_ADD+=("$LABEL")
+                echo "To add label: '$LABEL'"
+                LABELS_TO_REMOVE+=("needs-kind")
+                LABELS_TO_REMOVE+=("do-not-merge/needs-kind")
+              fi
+            elif [[ "$COMMENT_LINE" =~ ^/remove-kind ]]; then
+              if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
+                echo "The label '$LABEL' cannot be removed using /remove-kind."
+              else
+                LABELS_TO_REMOVE+=("$LABEL")
+                echo "To remove label: '$LABEL'"
               fi
 
-            # Handle hold command
-            # hold/unhold the PR immediately in case of unexpected auto-merge.
-            elif [[ "$COMMENT_LINE" =~ ^/hold ]]; then
+            # Handle triage
+            elif [[ "$COMMENT_LINE" =~ ^/wip || "COMMENT_LINE" =~  ^/WIP ]]; then
               if [[ "$LABEL" =~ ^cancel ]]; then
-                gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
-                echo "Remove label: do-not-merge/hold"
+                LABELS_TO_REMOVE+=("do-not-merge/work-in-progress")
               else
-                gh pr edit $PR_NUMBER --add-label do-not-merge/hold
-                echo "Add label: do-not-merge/hold"
+                LABELS_TO_ADD+=("do-not-merge/work-in-progress")
               fi
 
-            # Handle cc
-            # Can not require review from the author.
-            elif [[ "$COMMENT_LINE" =~ ^/cc ]]; then
-              USERNAME=$(echo "$LABEL" | sed 's/@//')
-              if [[ -n "$USERNAME" ]]; then
-                REVIEWERS_TO_ADD+=("$USERNAME")
-                echo "To require review from $USERNAME"
-              else
-                REVIEWERS_TO_ADD+=("$COMMENT_USER")
-                echo "To require review from $COMMENT_USER"
+            # Handle triage
+            elif [[ "$COMMENT_LINE" =~ ^/triage ]]; then
+              if [[ "$LABEL" =~ ^accepted ]]; then
+                LABELS_TO_ADD+=("triage/accepted")
+                LABELS_TO_REMOVE+=("needs-triage")
+                LABELS_TO_REMOVE+=("triage/needs-information")
+              elif [[ "$LABEL" =~ ^needs-information ]]; then
+                LABELS_TO_ADD+=("triage/needs-information")
               fi
-            elif [[ "$COMMENT_LINE" =~ ^/uncc ]]; then
-              USERNAME=$(echo "$LABEL" | sed 's/@//')
-              if [[ -n "$USERNAME" ]]; then
-                REVIEWERS_TO_REMOVE+=("$USERNAME")
-                echo "To unrequire review from $USERNAME"
-              else
-                REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
-                echo "To unrequire review from $COMMENT_USER"
-              fi
-            else
-              echo "$COMMENT_LINE is not supported for PR type"
-            fi
-          fi
 
-          # Handle kind command
-          if [[ "$COMMENT_LINE" =~ ^/kind ]]; then
-            if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
-              echo "The label '$LABEL' cannot be added using /kind."
-            else
+            # Handle assignment
+            elif [[ "$COMMENT_LINE" =~ ^/assign ]]; then
+              USERNAME=$(echo "$LABEL" | sed 's/@//')
+              if [[ -n "$USERNAME" ]]; then
+                ASSIGNEES_TO_ADD+=("$USERNAME")
+                echo "To assign to $USERNAME"
+              else
+                ASSIGNEES_TO_ADD+=("$COMMENT_USER")
+                echo "To assign to $COMMENT_USER"
+              fi
+            elif [[ "$COMMENT_LINE" =~ ^/unassign ]]; then
+              USERNAME=$(echo "$LABEL" | sed 's/@//')
+              if [[ -n "$USERNAME" ]]; then
+                ASSIGNEES_TO_REMOVE+=("$USERNAME")
+                echo "To unassign to $USERNAME"
+              else
+                ASSIGNEES_TO_REMOVE+=("$COMMENT_USER")
+                echo "To unassign to $COMMENT_USER"
+              fi
+
+            # Handle help & good-first-issue
+            elif [[ "$COMMENT_LINE" =~ ^/help ]]; then
+              LABELS_TO_ADD+=("help wanted")
+            elif [[ "$COMMENT_LINE" =~ ^/remove-help ]]; then
+              LABELS_TO_REMOVE+=("help wanted")
+            elif [[ "$COMMENT_LINE" =~ ^/good-first-issue ]]; then
+              LABELS_TO_ADD+=("good first issue")
+            elif [[ "$COMMENT_LINE" =~ ^/remove-good-first-issue ]]; then
+              LABELS_TO_REMOVE+=("good first issue")
+            elif [[ "$COMMENT_LINE" =~ ^/retitle ]]; then
+              gh "$EVENT_TYPE" edit $PR_NUMBER --title "$REMAINING_CONTENT"
+            elif [[ "$COMMENT_LINE" =~ ^/reopen ]]; then
+              gh "$EVENT_TYPE" reopen $PR_NUMBER
+            elif [[ "$COMMENT_LINE" =~ ^/close ]]; then
+              gh "$EVENT_TYPE" close $PR_NUMBER
+
+            # Handle priority
+            elif [[ "$COMMENT_LINE" =~ ^/priority ]]; then
               LABELS_TO_ADD+=("$LABEL")
-              echo "To add label: '$LABEL'"
-              LABELS_TO_REMOVE+=("needs-kind")
-              LABELS_TO_REMOVE+=("do-not-merge/needs-kind")
-            fi
-          elif [[ "$COMMENT_LINE" =~ ^/remove-kind ]]; then
-            if [[ "$LABEL" =~ ^lgtm || "$LABEL" =~ ^approve ]]; then
-              echo "The label '$LABEL' cannot be removed using /remove-kind."
-            else
+              LABELS_TO_REMOVE+=("needs-priority")
+            elif [[ "$COMMENT_LINE" =~ ^/remove-priority ]]; then
               LABELS_TO_REMOVE+=("$LABEL")
-              echo "To remove label: '$LABEL'"
+
+            # Handle milestone
+            elif [[ "$COMMENT_LINE" =~ ^/milestone ]]; then
+              if [[ "$LABEL" =~ ^clear ]]; then
+                gh "$EVENT_TYPE" edit $PR_NUMBER --milestone ""
+              else
+                gh "$EVENT_TYPE" edit $PR_NUMBER --milestone "$LABEL"
+              fi
+
             fi
+          done <<< "$COMMENT_BODY"
 
-          # Handle triage
-          elif [[ "$COMMENT_LINE" =~ ^/wip || "COMMENT_LINE" =~  ^/WIP ]]; then
-            if [[ "$LABEL" =~ ^cancel ]]; then
-              LABELS_TO_REMOVE+=("do-not-merge/work-in-progress")
-            else
-              LABELS_TO_ADD+=("do-not-merge/work-in-progress")
-            fi
+          # Convert array to comma-separated strings.
+          LABELS_TO_ADD_STR=$(IFS=,; echo "${LABELS_TO_ADD[*]}")
+          LABELS_TO_REMOVE_STR=$(IFS=,; echo "${LABELS_TO_REMOVE[*]}")
+          ASSIGNEES_TO_ADD_STR=$(IFS=,; echo "${ASSIGNEES_TO_ADD[*]}")
+          ASSIGNEES_TO_REMOVE_STR=$(IFS=,; echo "${ASSIGNEES_TO_REMOVE[*]}")
+          REVIEWERS_TO_ADD_STR=$(IFS=,; echo "${REVIEWERS_TO_ADD[*]}")
+          REVIEWERS_TO_REMOVE_STR=$(IFS=,; echo "${REVIEWERS_TO_REMOVE[*]}")
 
-          # Handle triage
-          elif [[ "$COMMENT_LINE" =~ ^/triage ]]; then
-            if [[ "$LABEL" =~ ^accepted ]]; then
-              LABELS_TO_ADD+=("triage/accepted")
-              LABELS_TO_REMOVE+=("needs-triage")
-              LABELS_TO_REMOVE+=("triage/needs-information")
-            elif [[ "$LABEL" =~ ^needs-information ]]; then
-              LABELS_TO_ADD+=("triage/needs-information")
-            fi
-
-          # Handle assignment
-          elif [[ "$COMMENT_LINE" =~ ^/assign ]]; then
-            USERNAME=$(echo "$LABEL" | sed 's/@//')
-            if [[ -n "$USERNAME" ]]; then
-              ASSIGNEES_TO_ADD+=("$USERNAME")
-              echo "To assign to $USERNAME"
-            else
-              ASSIGNEES_TO_ADD+=("$COMMENT_USER")
-              echo "To assign to $COMMENT_USER"
-            fi
-          elif [[ "$COMMENT_LINE" =~ ^/unassign ]]; then
-            USERNAME=$(echo "$LABEL" | sed 's/@//')
-            if [[ -n "$USERNAME" ]]; then
-              ASSIGNEES_TO_REMOVE+=("$USERNAME")
-              echo "To unassign to $USERNAME"
-            else
-              ASSIGNEES_TO_REMOVE+=("$COMMENT_USER")
-              echo "To unassign to $COMMENT_USER"
-            fi
-
-          # Handle help & good-first-issue
-          elif [[ "$COMMENT_LINE" =~ ^/help ]]; then
-            LABELS_TO_ADD+=("help wanted")
-          elif [[ "$COMMENT_LINE" =~ ^/remove-help ]]; then
-            LABELS_TO_REMOVE+=("help wanted")
-          elif [[ "$COMMENT_LINE" =~ ^/good-first-issue ]]; then
-            LABELS_TO_ADD+=("good first issue")
-          elif [[ "$COMMENT_LINE" =~ ^/remove-good-first-issue ]]; then
-            LABELS_TO_REMOVE+=("good first issue")
-          elif [[ "$COMMENT_LINE" =~ ^/retitle ]]; then
-            gh "$EVENT_TYPE" edit $PR_NUMBER --title "$REMAINING_CONTENT"
-          elif [[ "$COMMENT_LINE" =~ ^/reopen ]]; then
-            gh "$EVENT_TYPE" reopen $PR_NUMBER
-          elif [[ "$COMMENT_LINE" =~ ^/close ]]; then
-            gh "$EVENT_TYPE" close $PR_NUMBER
-
-          # Handle priority
-          elif [[ "$COMMENT_LINE" =~ ^/priority ]]; then
-            LABELS_TO_ADD+=("$LABEL")
-            LABELS_TO_REMOVE+=("needs-priority")
-          elif [[ "$COMMENT_LINE" =~ ^/remove-priority ]]; then
-            LABELS_TO_REMOVE+=("$LABEL")
-
-          # Handle milestone
-          elif [[ "$COMMENT_LINE" =~ ^/milestone ]]; then
-            if [[ "$LABEL" =~ ^clear ]]; then
-              gh "$EVENT_TYPE" edit $PR_NUMBER --milestone ""
-            else
-              gh "$EVENT_TYPE" edit $PR_NUMBER --milestone "$LABEL"
-            fi
-
-          fi
-        done <<< "$COMMENT_BODY"
-
-        # Convert array to comma-separated strings.
-        LABELS_TO_ADD_STR=$(IFS=,; echo "${LABELS_TO_ADD[*]}")
-        LABELS_TO_REMOVE_STR=$(IFS=,; echo "${LABELS_TO_REMOVE[*]}")
-        ASSIGNEES_TO_ADD_STR=$(IFS=,; echo "${ASSIGNEES_TO_ADD[*]}")
-        ASSIGNEES_TO_REMOVE_STR=$(IFS=,; echo "${ASSIGNEES_TO_REMOVE[*]}")
-        REVIEWERS_TO_ADD_STR=$(IFS=,; echo "${REVIEWERS_TO_ADD[*]}")
-        REVIEWERS_TO_REMOVE_STR=$(IFS=,; echo "${REVIEWERS_TO_REMOVE[*]}")
-
-        if [[ -n "$LABELS_TO_ADD_STR" ]]; then
-          gh "$EVENT_TYPE" edit $PR_NUMBER --add-label "$LABELS_TO_ADD_STR"
-        fi
-
-        if [[ -n "$LABELS_TO_REMOVE_STR" ]]; then
-          gh "$EVENT_TYPE" edit $PR_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
-        fi
-
-        if [[ -n "$ASSIGNEES_TO_ADD_STR" ]]; then
-          gh "$EVENT_TYPE" edit $PR_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
-        fi
-
-        if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then
-          gh "$EVENT_TYPE" edit $PR_NUMBER --remove-assignee "$ASSIGNEES_TO_REMOVE_STR"
-        fi
-
-        if [ "$EVENT_TYPE" == "pr" ]; then
-          if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
-            gh pr edit $PR_NUMBER --add-reviewer "$REVIEWERS_TO_ADD_STR"
+          if [[ -n "$LABELS_TO_ADD_STR" ]]; then
+            gh "$EVENT_TYPE" edit $PR_NUMBER --add-label "$LABELS_TO_ADD_STR"
           fi
 
-          # This is not work due to gh issue, see https://github.com/orgs/community/discussions/23054
-          if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
-            gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
+          if [[ -n "$LABELS_TO_REMOVE_STR" ]]; then
+            gh "$EVENT_TYPE" edit $PR_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
           fi
-        fi
+
+          if [[ -n "$ASSIGNEES_TO_ADD_STR" ]]; then
+            gh "$EVENT_TYPE" edit $PR_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
+          fi
+
+          if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then
+            gh "$EVENT_TYPE" edit $PR_NUMBER --remove-assignee "$ASSIGNEES_TO_REMOVE_STR"
+          fi
+
+          if [ "$EVENT_TYPE" == "pr" ]; then
+            if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
+              gh pr edit $PR_NUMBER --add-reviewer "$REVIEWERS_TO_ADD_STR"
+            fi
+
+            # This is not work due to gh issue, see https://github.com/orgs/community/discussions/23054
+            if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
+              gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
+            fi
+          fi
 
   auto-merge:
     if: github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Check lgtm and approved
-      id: check_label
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-          echo "Ready to merge"
-          echo "::set-output name=ready::true"
-        else
-          echo "Not ready to merge"
-          echo "::set-output name=ready::false"
-        fi
-
-    - name: Check PR Status
-      id: check_status
-      if: steps.check_label.outputs.ready == 'true'
-      run: |
-        #!/bin/bash
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        REPO=${{ github.repository }}
-        MAX_ATTEMPTS=120
-        SLEEP_INTERVAL=5
-        STATUS=""
-
-        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-        if ![[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-          exit 0
-        fi
-
-        check_status() {
-          CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json state)
-
-          SUCCESS_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SUCCESS")] | length')
-          FAILURE_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "FAILURE")] | length')
-          SKIPPED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SKIPPED")] | length')
-          QUEUED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "QUEUED")] | length')
-          WIP_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "IN_PROGRESS")] | length')
-
-          # 1 means the auto-merge itself.
-          if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
-            STATUS=0
-            echo "All checks passed or skipped."
-          elif [ $FAILURE_COUNT -gt 0 ]; then
-            STATUS=1
-            echo "Some checks failed."
-          else
-            STATUS=2
-            echo "Some checks are still in progress."
-          fi
-        }
-
-        attempt=0
-        while [ $attempt -lt $MAX_ATTEMPTS ]; do
-          check_status
-          echo "STATUS: $STATUS"
-
-          if [ $STATUS -eq 0 ]; then
-            echo "Checks passed. Proceeding with merge."
+      - name: Check lgtm and approved
+        id: check_label
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+            echo "Ready to merge"
             echo "::set-output name=ready::true"
-            exit 0
-          elif [ $STATUS -eq 1 ]; then
-            echo "Checks failed. Exiting."
-            echo "::set-output name=ready::false"
-            exit 1
           else
-            echo "Waiting for checks to complete..."
-            sleep $SLEEP_INTERVAL
-            attempt=$((attempt + 1))
+            echo "Not ready to merge"
+            echo "::set-output name=ready::false"
           fi
-        done
 
-        echo "Max attempts reached. Some checks are still in progress. Exiting."
-        echo "::set-output name=ready::false"
-        exit 1
+      - name: Check PR Status
+        id: check_status
+        if: steps.check_label.outputs.ready == 'true'
+        run: |
+          #!/bin/bash
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          MAX_ATTEMPTS=360 # 30 minutes
+          SLEEP_INTERVAL=5
+          STATUS=""
 
-    - name: Auto-merge
-      if: steps.check_label.outputs.ready == 'true' && steps.check_status.outputs.ready == 'true'
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-        # Check again just incase labels removed during waiting time.
-        if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-          gh pr merge $PR_NUMBER --merge
-          echo "Auto merged"
-        fi
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          if ![[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+            exit 0
+          fi
+
+          check_status() {
+            CHECKS=$(gh pr checks $PR_NUMBER --repo $REPO --json state)
+
+            SUCCESS_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SUCCESS")] | length')
+            FAILURE_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "FAILURE")] | length')
+            SKIPPED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "SKIPPED")] | length')
+            QUEUED_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "QUEUED")] | length')
+            WIP_COUNT=$(echo "$CHECKS" | jq '[.[] | select(.state == "IN_PROGRESS")] | length')
+
+            # 1 means the auto-merge itself.
+            if [ $WIP_COUNT -eq 1 ] && [ $FAILURE_COUNT -eq 0 ] && [ $QUEUED_COUNT -eq 0 ]; then
+              STATUS=0
+              echo "All checks passed or skipped."
+            elif [ $FAILURE_COUNT -gt 0 ]; then
+              STATUS=1
+              echo "Some checks failed."
+            else
+              STATUS=2
+              echo "Some checks are still in progress."
+            fi
+          }
+
+          attempt=0
+          while [ $attempt -lt $MAX_ATTEMPTS ]; do
+            check_status
+            echo "STATUS: $STATUS"
+
+            if [ $STATUS -eq 0 ]; then
+              echo "Checks passed. Proceeding with merge."
+              echo "::set-output name=ready::true"
+              exit 0
+            elif [ $STATUS -eq 1 ]; then
+              echo "Checks failed. Exiting."
+              echo "::set-output name=ready::false"
+              exit 1
+            else
+              echo "Waiting for checks to complete..."
+              sleep $SLEEP_INTERVAL
+              attempt=$((attempt + 1))
+            fi
+          done
+
+          echo "Max attempts reached. Some checks are still in progress. Exiting."
+          echo "::set-output name=ready::false"
+          exit 1
+
+      - name: Auto-merge
+        if: steps.check_label.outputs.ready == 'true' && steps.check_status.outputs.ready == 'true'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          # Check again just incase labels removed during waiting time.
+          if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+            gh pr merge $PR_NUMBER --merge
+            echo "Auto merged"
+          fi

@@ -281,14 +281,13 @@ jobs:
 
           if [[ -n "$ASSIGNEES_TO_ADD_STR" ]]; then
             # See related issue: https://github.com/kerthcet/github-workflow-as-kube/issues/7
-            # gh "$EVENT_TYPE" edit $ISSUE_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
+            gh "$EVENT_TYPE" edit $ISSUE_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
 
-            ASSIGNEES_ARGS=""
-            for user in "${ASSIGNEES_TO_ADD[@]}"; do
-                ASSIGNEES_ARGS+="-f "assignees[]=$user" "
-            done
-
-            gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
+            # ASSIGNEES_ARGS=""
+            # for user in "${ASSIGNEES_TO_ADD[@]}"; do
+            #     ASSIGNEES_ARGS+="-f "assignees[]=$user" "
+            # done
+            # gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
           fi
 
           if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then

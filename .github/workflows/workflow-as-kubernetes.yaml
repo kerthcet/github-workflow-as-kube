@@ -288,6 +288,7 @@ jobs:
             done
 
             echo ${ASSIGNEES_ARGS}
+            echo "gh api -X PATCH \"/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}\" ${ASSIGNEES_ARGS}"
             gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
           fi
 

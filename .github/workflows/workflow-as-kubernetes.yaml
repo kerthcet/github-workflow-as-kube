@@ -8,6 +8,7 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.AGENT_TOKEN }}
+  GH_DEBUG: api
 
 jobs:
   on-new-push:

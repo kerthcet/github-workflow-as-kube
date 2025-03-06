@@ -75,11 +75,12 @@ jobs:
       - name: Install yq
         run: pip install yq
 
-      - name: Handle Issue Comments
+      - name: Handle Comments
         run: |
           COMMENT_BODY=$(jq -r '.comment.body' $GITHUB_EVENT_PATH)
-          PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
+          ISSUE_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
           COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
+          REPO_NAME=$(jq -r '.repository.full_name' $GITHUB_EVENT_PATH)
           EVENT_TYPE=""
 
           if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
@@ -131,7 +132,7 @@ jobs:
                     echo "To add label: approved"
                   fi
                 else
-                  gh pr comment $PR_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
+                  gh pr comment $ISSUE_NUMBER --body "Sorry, @$COMMENT_USER is not authorized to approve/unapprove this PR."
                   echo "User $COMMENT_USER is not authorized to approve/unapprove this PR"
                 fi
 
@@ -139,10 +140,10 @@ jobs:
               # hold/unhold the PR immediately in case of unexpected auto-merge.
               elif [[ "$COMMENT_LINE" =~ ^/hold ]]; then
                 if [[ "$LABEL" =~ ^cancel ]]; then
-                  gh pr edit $PR_NUMBER --remove-label do-not-merge/hold
+                  gh pr edit $ISSUE_NUMBER --remove-label do-not-merge/hold
                   echo "Remove label: do-not-merge/hold"
                 else
-                  gh pr edit $PR_NUMBER --add-label do-not-merge/hold
+                  gh pr edit $ISSUE_NUMBER --add-label do-not-merge/hold
                   echo "Add label: do-not-merge/hold"
                 fi
 
@@ -237,11 +238,11 @@ jobs:
             elif [[ "$COMMENT_LINE" =~ ^/remove-good-first-issue ]]; then
               LABELS_TO_REMOVE+=("good first issue")
             elif [[ "$COMMENT_LINE" =~ ^/retitle ]]; then
-              gh "$EVENT_TYPE" edit $PR_NUMBER --title "$REMAINING_CONTENT"
+              gh "$EVENT_TYPE" edit $ISSUE_NUMBER --title "$REMAINING_CONTENT"
             elif [[ "$COMMENT_LINE" =~ ^/reopen ]]; then
-              gh "$EVENT_TYPE" reopen $PR_NUMBER
+              gh "$EVENT_TYPE" reopen $ISSUE_NUMBER
             elif [[ "$COMMENT_LINE" =~ ^/close ]]; then
-              gh "$EVENT_TYPE" close $PR_NUMBER
+              gh "$EVENT_TYPE" close $ISSUE_NUMBER
 
             # Handle priority
             elif [[ "$COMMENT_LINE" =~ ^/priority ]]; then
@@ -253,9 +254,9 @@ jobs:
             # Handle milestone
             elif [[ "$COMMENT_LINE" =~ ^/milestone ]]; then
               if [[ "$LABEL" =~ ^clear ]]; then
-                gh "$EVENT_TYPE" edit $PR_NUMBER --milestone ""
+                gh "$EVENT_TYPE" edit $ISSUE_NUMBER --milestone ""
               else
-                gh "$EVENT_TYPE" edit $PR_NUMBER --milestone "$LABEL"
+                gh "$EVENT_TYPE" edit $ISSUE_NUMBER --milestone "$LABEL"
               fi
 
             fi
@@ -270,29 +271,33 @@ jobs:
           REVIEWERS_TO_REMOVE_STR=$(IFS=,; echo "${REVIEWERS_TO_REMOVE[*]}")
 
           if [[ -n "$LABELS_TO_ADD_STR" ]]; then
-            gh "$EVENT_TYPE" edit $PR_NUMBER --add-label "$LABELS_TO_ADD_STR"
+            gh "$EVENT_TYPE" edit $ISSUE_NUMBER --add-label "$LABELS_TO_ADD_STR"
           fi
 
           if [[ -n "$LABELS_TO_REMOVE_STR" ]]; then
-            gh "$EVENT_TYPE" edit $PR_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
+            gh "$EVENT_TYPE" edit $ISSUE_NUMBER --remove-label "$LABELS_TO_REMOVE_STR"
           fi
 
           if [[ -n "$ASSIGNEES_TO_ADD_STR" ]]; then
-            gh "$EVENT_TYPE" edit $PR_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
+            # See related issue: https://github.com/kerthcet/github-workflow-as-kube/issues/7
+            gh "$EVENT_TYPE" edit $ISSUE_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
+
+            ASSIGNEES_ARGS=$(printf ' -f "assignees[]=%s"' "${ASSIGNEES_TO_ADD[@]}")
+            gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" "$ASSIGNEES_ARGS"
           fi
 
           if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then
-            gh "$EVENT_TYPE" edit $PR_NUMBER --remove-assignee "$ASSIGNEES_TO_REMOVE_STR"
+            gh "$EVENT_TYPE" edit $ISSUE_NUMBER --remove-assignee "$ASSIGNEES_TO_REMOVE_STR"
           fi
 
           if [ "$EVENT_TYPE" == "pr" ]; then
             if [[ -n "$REVIEWERS_TO_ADD_STR" ]]; then
-              gh pr edit $PR_NUMBER --add-reviewer "$REVIEWERS_TO_ADD_STR"
+              gh pr edit $ISSUE_NUMBER --add-reviewer "$REVIEWERS_TO_ADD_STR"
             fi
 
             # This is not work due to gh issue, see https://github.com/orgs/community/discussions/23054
             if [[ -n "$REVIEWERS_TO_REMOVE_STR" ]]; then
-              gh pr edit $PR_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
+              gh pr edit $ISSUE_NUMBER --remove-reviewer "$REVIEWERS_TO_REMOVE_STR"
             fi
           fi
 

@@ -394,8 +394,11 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
           TITLE=$(gh pr view $PR_NUMBER --json title -q .title)
+
+          echo $TITLE
+
           # Check again just incase labels removed during waiting time.
           if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-            gh pr merge $PR_NUMBER --squash
+            gh pr merge $PR_NUMBER --squash --subject $TITLE
             echo "Auto merged"
           fi

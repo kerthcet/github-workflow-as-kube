@@ -395,7 +395,6 @@ jobs:
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
 
           echo "Merging PR: $PR_NUMBER"
-
           TITLE=$(gh pr view $PR_NUMBER --json title --jq '.title')
 
           echo $TITLE

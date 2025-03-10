@@ -116,6 +116,12 @@ jobs:
               continue
             fi
 
+            # will be handled by ci workflow instead
+            if [[ "$COMMENT_LINE" =~ ^/retest ]]; then
+                echo "skip retest!"
+                continue
+            fi
+
             # Handle PR only.
             if [ "$EVENT_TYPE" == "pr" ]; then
 

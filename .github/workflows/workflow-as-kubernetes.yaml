@@ -65,8 +65,9 @@ jobs:
       - name: request for review
         run: |
           # request two reviewers from OWNERS file randomly
+          PR_NUMBER=${{ github.event.pull_request.number }}
           REVIEWERS=$(yq '.reviewers[]' OWNERS | shuf | head -n 2 | paste -sd ",")
-          gh pr create --reviewer $REVIEWERS
+          gh pr edit $PR_NUMBER --add-reviewer $REVIEWERS
 
   # Work for issue & PR, ignore update for now, ignore retest command, leave it for ci workflow.
   on-new-comment:

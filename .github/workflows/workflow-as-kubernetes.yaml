@@ -54,10 +54,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install yq
+        run: pip install yq
+
       - name: Issue information
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           gh pr edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
+
+      - name: request for review
+        run: |
+          # request two reviewers from OWNERS file randomly
+          REVIEWERS=$(yq '.reviewers[]' OWNERS | shuf | head -n 2 | paste -sd ",")
+          gh pr create --reviewer $REVIEWERS
 
   # Work for issue & PR, ignore update for now.
   on-new-comment:

@@ -70,7 +70,7 @@ jobs:
 
   # Work for issue & PR, ignore update for now, ignore retest command, leave it for ci workflow.
   on-new-comment:
-    if: (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') && github.event.action == 'created' && github.event.comment.body != '/retest')
+    if: (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') && github.event.action == 'created' && github.event.comment.body != '/retest'
     runs-on: ubuntu-latest
 
     steps:

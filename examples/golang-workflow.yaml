@@ -5,6 +5,9 @@ on:
     types:
       - opened
       - synchronize
+  issue_comment:
+    types:
+      - created
 
 jobs:
   golang-ci:

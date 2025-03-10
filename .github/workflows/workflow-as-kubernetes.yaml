@@ -172,10 +172,10 @@ jobs:
                 USERNAME=$(echo "$LABEL" | sed 's/@//')
                 if [[ -n "$USERNAME" ]]; then
                   REVIEWERS_TO_REMOVE+=("$USERNAME")
-                  echo "To unrequire review from $USERNAME"
+                  echo "To remove review from $USERNAME"
                 else
                   REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
-                  echo "To unrequire review from $COMMENT_USER"
+                  echo "To remove review from $COMMENT_USER"
                 fi
               else
                 echo "$COMMENT_LINE is not supported for PR type"

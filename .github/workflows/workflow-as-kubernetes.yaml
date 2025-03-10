@@ -396,6 +396,6 @@ jobs:
           TITLE=$(gh pr view $PR_NUMBER --json title -q .title)
           # Check again just incase labels removed during waiting time.
           if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
-            gh pr merge $PR_NUMBER --squash --subject $TITLE
+            gh pr merge $PR_NUMBER --squash
             echo "Auto merged"
           fi

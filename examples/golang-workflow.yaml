@@ -1,3 +1,4 @@
+# Do not edit the workflow name, used for reference in the CI pipeline.
 name: CI Workflow
 
 on:
@@ -5,9 +6,6 @@ on:
     types:
       - opened
       - synchronize
-  issue_comment:
-    types:
-      - created
 
 jobs:
   golang-ci:

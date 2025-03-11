@@ -69,9 +69,9 @@ jobs:
           REVIEWERS=$(yq '.reviewers[]' OWNERS | shuf | head -n 2 | paste -sd ",")
           gh pr edit $PR_NUMBER --add-reviewer $REVIEWERS
 
-  # Work for issue & PR, ignore update for now, ignore retest command, leave it for ci workflow.
+  # Work for issue & PR, ignore update for now
   on-new-comment:
-    if: (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') && github.event.action == 'created' && github.event.comment.body != '/retest'
+    if: (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') && github.event.action == 'created'
     runs-on: ubuntu-latest
 
     steps:
@@ -178,6 +178,21 @@ jobs:
                   REVIEWERS_TO_REMOVE+=("$COMMENT_USER")
                   echo "To remove review from $COMMENT_USER"
                 fi
+
+              # handle retest command
+              elif [[ "$COMMENT_LINE" =~ ^/retest]]; then
+                case "$COMMENT_LINE" in
+                    "/retest")
+                        gh run rerun $(gh run list --branch $(git rev-parse --abbrev-ref HEAD) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1) --failed
+                        ;;
+                    "/retest all")
+                        gh run rerun $(gh run list --branch $(git rev-parse --abbrev-ref HEAD) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
+                        ;;
+                    *)
+                        gh run rerun $(gh run list --branch $(git rev-parse --abbrev-ref HEAD) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
+                        ;;
+                esac
+
               else
                 echo "$COMMENT_LINE is not supported for PR type"
               fi

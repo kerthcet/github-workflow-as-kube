@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 concurrency:
-  group: golang-ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -14,7 +14,6 @@ env:
 
 jobs:
   golang-lint:
-    if: (github.event_name == 'issue_comment' && github.event.comment.body == '/retest') || github.event_name == 'pull_request'
     name: golang-lint
     runs-on: ubuntu-latest
     steps:
@@ -29,7 +28,6 @@ jobs:
           args: --timeout=30m --config=.golangci.yaml
 
   unit-test:
-    if: (github.event_name == 'issue_comment' && github.event.comment.body == '/retest') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +39,6 @@ jobs:
           make test
 
   integration-test:
-    if: (github.event_name == 'issue_comment' && github.event.comment.body == '/retest') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -53,7 +50,6 @@ jobs:
           make test-integration
 
   e2e-test:
-    if: (github.event_name == 'issue_comment' && github.event.comment.body == '/retest') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:

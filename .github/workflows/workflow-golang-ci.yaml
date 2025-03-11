@@ -23,6 +23,7 @@ jobs:
       - name: Run unit tests
         run: |
           sleep 60
+          exit 1
 
   # golang-lint:
   #   name: golang-lint

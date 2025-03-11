@@ -23,6 +23,7 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | Triage | /triage needs-information | /triage accepted | triage accepted will remove the `needs-triage` label |
 | WIP | /wip | /wip cancel | |
 | API Change | /kind api-change | /remove-kind api-change | |
+| ReTest | /retest | No OP | rerun all the failed tests, use `/retest all` to rerun all tests |
 
 **NOTE**: PR will be auto-merged once have `lgtm`, `approved` and no `do-not-merge/*` labels and all the workflow checks are passed like the ci tests.
 
@@ -42,7 +43,7 @@ Then it should work now.
 
 We support other workflows as well, you can select as your needed:
 
-- Golang ci workflow: running golang ci, golang tests. You should provide `make test`, `make test-integration`, `make test-e2e` primitives.
+- Golang ci workflow: running golang ci, golang tests. You should provide `make test`, `make test-integration`, `make test-e2e` primitives and do not edit the workflow name.
 
 ## Roadmap
 

@@ -96,6 +96,8 @@ jobs:
           BRANCH_NAME=$(gh pr view $PR_NUMBER --json headRefName -q '.headRefName')
           EVENT_TYPE=""
 
+          echo "PR NUMBER: $PR_NUMBER"
+
           if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
             EVENT_TYPE="pr"
           else

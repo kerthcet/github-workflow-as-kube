@@ -60,7 +60,13 @@ jobs:
       - name: Issue information
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
+          AUTHOR=${{ github.event.pull_request.user.login }}
+
           gh pr edit $PR_NUMBER --add-label "needs-triage,needs-priority,do-not-merge/needs-kind"
+
+          if yq ".approvers[] | select(. == \"$AUTHOR\") " OWNERS | grep -q "$AUTHOR"; then
+            gh pr edit $PR_NUMBER --add-label "approved"
+          fi
 
       - name: request for review
         run: |

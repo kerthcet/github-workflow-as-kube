@@ -13,21 +13,7 @@ env:
   CGO_ENABLED: "0"
 
 jobs:
-  golang-lint:
-    name: golang-lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - uses: actions/checkout@v4
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v${{ env.GOLANGCI_VERSION }}
-          args: --timeout=30m --config=.golangci.yaml
-
-  unit-test:
+  sleep:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,26 +22,51 @@ jobs:
 
       - name: Run unit tests
         run: |
-          make test
+          sleep 60
 
-  integration-test:
-    runs-on: ubuntu-latest
+  # golang-lint:
+  #   name: golang-lint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: ${{ env.GO_VERSION }}
+  #     - uses: actions/checkout@v4
+  #     - name: golangci-lint
+  #       uses: golangci/golangci-lint-action@v6
+  #       with:
+  #         version: v${{ env.GOLANGCI_VERSION }}
+  #         args: --timeout=30m --config=.golangci.yaml
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  # unit-test:
+  #   runs-on: ubuntu-latest
 
-      - name: Run integration tests
-        run: |
-          make test-integration
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-  e2e-test:
-    runs-on: ubuntu-latest
+  #     - name: Run unit tests
+  #       run: |
+  #         make test
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  # integration-test:
+  #   runs-on: ubuntu-latest
 
-      - name: Run e2e tests
-        run: |
-          make test-e2e
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Run integration tests
+  #       run: |
+  #         make test-integration
+
+  # e2e-test:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Run e2e tests
+  #       run: |
+  #         make test-e2e

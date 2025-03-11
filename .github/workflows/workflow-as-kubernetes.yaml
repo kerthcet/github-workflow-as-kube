@@ -184,7 +184,7 @@ jobs:
 
               # handle retest command
               elif [[ "$COMMENT_LINE" =~ ^/retest ]]; then
-                id=$(gh run list --branch $(BRANCH_NAME) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
+                id=$(gh run list --branch $BRANCH_NAME --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
                 echo "The failed CI workflow: $id"
                 if [[ "$COMMENT_LINE" == "/retest" ]]; then
                     gh run rerun $id --failed

@@ -181,10 +181,12 @@ jobs:
 
               # handle retest command
               elif [[ "$COMMENT_LINE" =~ ^/retest ]]; then
+                id=$(gh run list --branch $(git rev-parse --abbrev-ref HEAD) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
+                echo "The failed CI workflow: $id"
                 if [[ "$COMMENT_LINE" == "/retest" ]]; then
-                    gh run rerun $(gh run list --branch $(git rev-parse --abbrev-ref HEAD) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1) --failed
+                    gh run rerun $id --failed
                 else
-                    gh run rerun $(gh run list --branch $(git rev-parse --abbrev-ref HEAD) --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
+                    gh run rerun $id
                 fi
 
               else

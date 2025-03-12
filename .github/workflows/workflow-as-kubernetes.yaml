@@ -98,7 +98,6 @@ jobs:
           ISSUE_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
           COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
           REPO_NAME=$(jq -r '.repository.full_name' $GITHUB_EVENT_PATH)
-          BRANCH_NAME=$(gh pr view $ISSUE_NUMBER --json headRefName -q '.headRefName')
           EVENT_TYPE=""
 
           if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
@@ -188,6 +187,8 @@ jobs:
 
               # handle retest command
               elif [[ "$COMMENT_LINE" =~ ^/retest ]]; then
+                BRANCH_NAME=$(gh pr view $ISSUE_NUMBER --json headRefName -q '.headRefName')
+
                 id=$(gh run list --branch $BRANCH_NAME --limit 10 --json databaseId,status,conclusion,name | jq -r '.[] | select(.conclusion=="failure" and .name=="CI Workflow") | .databaseId' | head -n 1)
                 echo "The failed CI workflow: $id"
                 if [[ "$COMMENT_LINE" == "/retest" ]]; then

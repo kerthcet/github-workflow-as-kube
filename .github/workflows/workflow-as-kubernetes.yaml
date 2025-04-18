@@ -44,7 +44,7 @@ jobs:
       - name: Issue information
         run: |
           PR_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
-          gh issue edit $PR_NUMBER --add-label "needs-triage,needs-kind,needs-priority"
+          gh issue edit $PR_NUMBER --add-label "needs-triage,needs-priority"
 
   on-pr-opened:
     if: github.event_name == 'pull_request_target' && github.event.action == 'opened'

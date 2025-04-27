@@ -314,10 +314,24 @@ jobs:
             # See related issue: https://github.com/kerthcet/github-workflow-as-kube/issues/7
             # gh "$EVENT_TYPE" edit $ISSUE_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
 
-            ASSIGNEES_ARGS=""
-            for user in "${ASSIGNEES_TO_ADD[@]}"; do
-                ASSIGNEES_ARGS+="-f "assignees[]=$user" "
+            current_assignees=$(gh api "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" --jq '.assignees[].login')
+            all_assignees=()
+
+            for assignee in $current_assignees; do
+              all_assignees+=("$assignee")
             done
+
+            for assignee in "${ASSIGNEES_TO_ADD[@]}"; do
+              all_assignees+=("$assignee")
+            done
+
+            for user in "${all_assignees[@]}"; do
+              ASSIGNEES_ARGS+="-f assignees[]=$user "
+            done
+
+            # for user in "${ASSIGNEES_TO_ADD[@]}"; do
+            #     ASSIGNEES_ARGS+="-f "assignees[]=$user" "
+            # done
             gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
           fi
 

@@ -351,7 +351,7 @@ jobs:
           fi
 
   auto-merge:
-    if: github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false
+    if: (github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false) || (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && github.event.issue.state == 'open' && contains(github.event.comment.body, '/retest'))
     runs-on: ubuntu-latest
 
     steps:

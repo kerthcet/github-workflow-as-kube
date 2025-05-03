@@ -200,7 +200,7 @@ jobs:
                 fi
 
               else
-                echo "$COMMENT_LINE is not supported for PR type"
+                echo "$COMMENT_LINE is not for PR type only, fall back to normal handler"
               fi
             fi
 
@@ -318,19 +318,21 @@ jobs:
             all_assignees=()
 
             for assignee in $current_assignees; do
+              echo "current assignee: $assignee"
               all_assignees+=("$assignee")
             done
 
             for assignee in "${ASSIGNEES_TO_ADD[@]}"; do
+              echo "to add assignee: $assignee"
               all_assignees+=("$assignee")
             done
 
             for user in "${all_assignees[@]}"; do
-              ASSIGNEES_ARGS+="-f assignees[]=$user "
+              ASSIGNEES_ARGS+="-f "assignees[]=$user" "
             done
 
             # for user in "${ASSIGNEES_TO_ADD[@]}"; do
-            #     ASSIGNEES_ARGS+="-f "assignees[]=$user" "
+            #   ASSIGNEES_ARGS+="-f "assignees[]=$user" "
             # done
             gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
           fi

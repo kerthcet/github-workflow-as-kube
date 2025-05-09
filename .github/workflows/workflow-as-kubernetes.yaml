@@ -363,7 +363,12 @@ jobs:
       - name: Check lgtm and approved
         id: check_label
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
+          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            PR_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+          else
+            PR_NUMBER=${{ github.event.pull_request.number }}
+          fi
+
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
           if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
             echo "Ready to merge"

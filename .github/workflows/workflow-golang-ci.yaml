@@ -9,7 +9,7 @@ concurrency:
 
 env:
   GO_VERSION: "1.24.1"
-  GOLANGCI_VERSION: "2.1.6"
+  GOLANGCI_VERSION: "1.64.8"
   CGO_ENABLED: "0"
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       - uses: actions/checkout@v4
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v${{ env.GOLANGCI_VERSION }}
           args: --timeout=30m --config=.golangci.yaml

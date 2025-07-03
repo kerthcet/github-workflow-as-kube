@@ -9,7 +9,7 @@ concurrency:
 
 env:
   GO_VERSION: "1.24.1"
-  GOLANGCI_VERSION: "1.64.8"
+  GOLANGCI_VERSION: "v2.2.1"
   CGO_ENABLED: "0"
 
 jobs:

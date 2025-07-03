@@ -9,7 +9,8 @@ concurrency:
 
 env:
   GO_VERSION: "1.24.1"
-  GOLANGCI_VERSION: "v2.2.1"
+  # Do not add the 'v' prefix to the golangci-lint version.
+  GOLANGCI_VERSION: "2.2.1"
   CGO_ENABLED: "0"
 
 jobs:

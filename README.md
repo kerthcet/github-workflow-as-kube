@@ -32,12 +32,22 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 To use the workflow, you have to:
 
 - Provide a [OWNERS](./OWNERS) file, only the approvers have the privilege to tag `/approve` or `/approve cancel`
-- Provide a github [secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) with the name of `AGENT_TOKEN`, it should have right permissions, like owning the privilege to create labels, which is required below.
-- Add the token owner to the repo's `Collaborators and teams` with written role.
+- Create a class `Personal Access Token` with one user (you can choose to use Fine-grained tokens as well), the user better to act as a robot in the repo, with the following permissions:
+  - `repo` (Full control of private repositories)
+  - `workflow` (Update GitHub Action workflow files)
+  - `write:packages` (Write access to packages)
+  - `admin:org` (Full control of orgs and teams, read and write org projects, read org hooks, and read org custom properties)
+  - `admin:repo_hook` (Full control of repository hooks)
+  - `admin:org_hook` (Full control of organization hooks)
+  - `notifications` (Read and write access to notifications)
+  - `write:discussion` (Write access to discussions)
+  - `project` (Read and write access to projects)
+- Create a org-level [secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) under `Security->Secrets and variables->Actions->Organization secrets`, it should be named of `AGENT_TOKEN`.
+- Add the token owner, the robot to the repo's `Collaborators and teams` with `Write` role, under the `Direct access` section.
 - Add the [init-workflow](./examples/kube-workflow-init.yaml) to your project under the path of `.github/workflows/`, then run the workflow manually, which will help you finish the setup, like creating necessary labels.
 - Add the [workflow](./examples/kube-workflow.yaml) to your project under the path of `.github/workflows/`.
 
-Then it should work now.
+That's it, now you can use the commands to manage your PRs.
 
 ## Other workflows
 

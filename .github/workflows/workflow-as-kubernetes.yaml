@@ -71,6 +71,7 @@ jobs:
       - name: request for review
         run: |
           AUTHOR=${{ github.event.pull_request.user.login }}
+          echo "Author: $AUTHOR"
 
           # request two reviewers from OWNERS file randomly
           PR_NUMBER=${{ github.event.pull_request.number }}
@@ -83,6 +84,8 @@ jobs:
               | head -n 2 \
               | paste -sd ","
           )
+
+          echo "Request reviewers: $REVIEWERS"
           gh pr edit $PR_NUMBER --add-reviewer $REVIEWERS
 
   # Work for issue & PR, ignore update for now

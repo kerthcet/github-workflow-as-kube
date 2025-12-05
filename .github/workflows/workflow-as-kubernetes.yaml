@@ -74,7 +74,13 @@ jobs:
 
           # request two reviewers from OWNERS file randomly
           PR_NUMBER=${{ github.event.pull_request.number }}
-          REVIEWERS=$(yq '.reviewers[]' OWNERS | grep -v "^$AUTHOR$" | shuf | head -n 2 | paste -sd ",")
+          REVIEWERS=$(yq '.reviewers[]' OWNERS \
+            | sed 's/^[ \t]*//;s/[ \t]*$//' \   # trim whitespace
+            | tr -d '\r' \                      # remove CR
+            | grep -v "^${AUTHOR}$" \           # exclude author
+            | shuf \
+            | head -n 2 \
+            | paste -sd ",")
           gh pr edit $PR_NUMBER --add-reviewer $REVIEWERS
 
   # Work for issue & PR, ignore update for now

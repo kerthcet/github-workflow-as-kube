@@ -12,7 +12,7 @@ This workflow following [Kubernetes habits](https://prow.k8s.io/command-help?rep
 | Help | /help | /remove-help | |
 | LGTM | /lgtm | /lgtm cancel | |
 | Approve | /approve | /approve cancel | Only approvers have the privilege |
-| Hold | /hold | /hold cancel | PR will not be merged once hold |
+| Hold | /hold | /unhold | PR will not be merged once hold |
 | Category | /kind feature | /remove-kind feature | Support kinds: `feature`, `cleanup`, `bug`, `documentation` and so on... |
 | Assignment | /assign @_somebody_ | /unassign @_somebody_ | When @nobody, will assign/unassign to the commenter |
 | Review Request | /cc @_somebody_ | /uncc @_somebody_ | When @nobody, will cc/uncc the commenter |

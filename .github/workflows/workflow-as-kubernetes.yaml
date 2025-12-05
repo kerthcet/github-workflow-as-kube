@@ -158,13 +158,11 @@ jobs:
               # Handle hold command
               # hold/unhold the PR immediately in case of unexpected auto-merge.
               elif [[ "$COMMENT_LINE" =~ ^/hold ]]; then
-                if [[ "$LABEL" =~ ^cancel ]]; then
-                  gh pr edit $ISSUE_NUMBER --remove-label do-not-merge/hold
-                  echo "Remove label: do-not-merge/hold"
-                else
-                  gh pr edit $ISSUE_NUMBER --add-label do-not-merge/hold
-                  echo "Add label: do-not-merge/hold"
-                fi
+                gh pr edit $ISSUE_NUMBER --add-label do-not-merge/hold
+                echo "Add label: do-not-merge/hold"
+              elif [[ "$COMMENT_LINE" =~ ^/unhold ]]; then
+                gh pr edit $ISSUE_NUMBER --remove-label do-not-merge/hold
+                echo "Remove label: do-not-merge/hold"
 
               # Handle cc
               # Can not require review from the author.

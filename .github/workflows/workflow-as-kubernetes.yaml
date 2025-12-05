@@ -75,19 +75,8 @@ jobs:
 
           # request two reviewers from OWNERS file randomly
           PR_NUMBER=${{ github.event.pull_request.number }}
-          A_REVIEWERS=$(
-            yq '.reviewers[]' OWNERS \
-              | sed 's/^[ \t]*//;s/[ \t]*$//' \
-              | tr -d '\r'
-          )
-          B_REVIEWERS=$(
-            yq '.reviewers[]' OWNERS \
-              | sed 's/^[ \t]*//;s/[ \t]*$//' \
-              | tr -d '\r' \
-              | grep -v "^${AUTHOR}$"
-          )
           REVIEWERS=$(
-            yq '.reviewers[]' OWNERS \
+            yq -r '.reviewers[]' OWNERS \
               | sed 's/^[ \t]*//;s/[ \t]*$//' \
               | tr -d '\r' \
               | grep -v "^${AUTHOR}$" \
@@ -97,8 +86,6 @@ jobs:
           )
 
           echo "Request reviewers: $REVIEWERS"
-          echo "A possible reviewers: $A_REVIEWERS"
-          echo "B possible reviewers: $B_REVIEWERS"
           gh pr edit $PR_NUMBER --add-reviewer $REVIEWERS
 
   # Work for issue & PR, ignore update for now

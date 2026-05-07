@@ -457,8 +457,19 @@ jobs:
 
           echo "Merging PR: $PR_NUMBER"
 
-          # Check again just incase labels removed during waiting time.
+          # Check again just in case labels removed during waiting time.
           if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+            # Create GitHub approval review if both lgtm and approved labels exist
+            EXISTING_APPROVALS=$(gh api "/repos/${REPO_NAME}/pulls/${PR_NUMBER}/reviews" --jq '[.[] | select(.state == "APPROVED")] | length')
+            if [ "$EXISTING_APPROVALS" -eq 0 ]; then
+              gh api -X POST "/repos/${REPO_NAME}/pulls/${PR_NUMBER}/reviews" \
+                -f event="APPROVE" \
+                -f body="Approved: PR has both lgtm and approved labels"
+              echo "Created GitHub approval review (lgtm + approved)"
+            else
+              echo "GitHub approval review already exists, skipping"
+            fi
+
             gh pr merge $PR_NUMBER --squash
             echo "Auto merged"
           fi

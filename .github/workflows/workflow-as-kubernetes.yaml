@@ -109,7 +109,6 @@ jobs:
           COMMENT_BODY=$(jq -r '.comment.body' $GITHUB_EVENT_PATH)
           ISSUE_NUMBER=$(jq -r '.issue.number' $GITHUB_EVENT_PATH)
           COMMENT_USER=$(jq -r '.comment.user.login' $GITHUB_EVENT_PATH)
-          REPO_NAME=$(jq -r '.repository.full_name' $GITHUB_EVENT_PATH)
           EVENT_TYPE=""
 
           if [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
@@ -322,7 +321,7 @@ jobs:
             # See related issue: https://github.com/kerthcet/github-workflow-as-kube/issues/7
             # gh "$EVENT_TYPE" edit $ISSUE_NUMBER --add-assignee "$ASSIGNEES_TO_ADD_STR"
 
-            current_assignees=$(gh api "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" --jq '.assignees[].login')
+            current_assignees=$(gh api "/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" --jq '.assignees[].login')
             all_assignees=()
 
             for assignee in $current_assignees; do
@@ -342,7 +341,7 @@ jobs:
             # for user in "${ASSIGNEES_TO_ADD[@]}"; do
             #   ASSIGNEES_ARGS+="-f "assignees[]=$user" "
             # done
-            gh api -X PATCH "/repos/${REPO_NAME}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
+            gh api -X PATCH "/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" ${ASSIGNEES_ARGS}
           fi
 
           if [[ -n "$ASSIGNEES_TO_REMOVE_STR" ]]; then

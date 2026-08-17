@@ -1,5 +1,9 @@
 name: Workflow As Kubernetes Initialization
 
+permissions:
+  contents: read
+  issues: write
+
 on:
   workflow_call:
     secrets:

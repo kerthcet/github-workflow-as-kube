@@ -1,5 +1,11 @@
 name: Workflow As Kubernetes
 
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 on:
   workflow_call:
     secrets:

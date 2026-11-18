@@ -368,6 +368,12 @@ jobs:
   auto-merge:
     if: (github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.pull_request.merged == false) || (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && github.event.issue.state == 'open' && contains(github.event.comment.body, '/retest'))
     runs-on: ubuntu-latest
+    # One comment such as "/lgtm /approve /kind feature" changes several labels at once, and each
+    # change starts a run. Unserialized, they all read "no approval yet" and approve, then race the
+    # merge ("Merge already in progress"). Queued instead, a later run finds the PR merged.
+    concurrency:
+      group: auto-merge-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: false
 
     steps:
       - name: Checkout code
@@ -382,8 +388,14 @@ jobs:
             PR_NUMBER=${{ github.event.pull_request.number }}
           fi
 
+          # The event's "merged == false" is from when the run was queued; a run that waited
+          # behind another (see concurrency) may find the PR already merged.
+          STATE=$(gh pr view $PR_NUMBER --json state --jq '.state')
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-          if [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
+          if [[ "$STATE" != "OPEN" ]]; then
+            echo "PR is $STATE, nothing to merge"
+            echo "::set-output name=ready::false"
+          elif [[ "$LABELS" == *"lgtm"* && "$LABELS" == *"approved"* && "$LABELS" != *"do-not-merge"* ]]; then
             echo "Ready to merge"
             echo "::set-output name=ready::true"
           else
@@ -475,6 +487,15 @@ jobs:
               echo "GitHub approval review already exists, skipping"
             fi
 
-            gh pr merge $PR_NUMBER --squash
+            # Another merge of this PR, by a person or a run outside this group, is not a failure.
+            if ! OUT=$(gh pr merge $PR_NUMBER --squash 2>&1); then
+              echo "$OUT"
+              if [[ "$OUT" == *"already merged"* || "$OUT" == *"Merge already in progress"* ]]; then
+                echo "Already merged or merging, nothing to do"
+                exit 0
+              fi
+              exit 1
+            fi
+            echo "$OUT"
             echo "Auto merged"
           fi
